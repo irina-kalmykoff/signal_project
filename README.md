@@ -67,5 +67,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Project Members
 
    ```sh
-   i6365269
+   - Student ID: i6365269
    ```
