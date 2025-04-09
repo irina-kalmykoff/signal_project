@@ -25,6 +25,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+ * The HealthDataSimulator class generates various types of health data for multiple patients.
+ * It supports different output strategies  (console, file, TCP socket, or WebSocket)
+ *  and allows configuration via command-line arguments.
+ * <p>
+ * The simulator creates scheduled tasks to generate:
+ * <ul>
+ *   <li>ECG data</li>
+ *   <li>Blood saturation data</li>
+ *   <li>Blood pressure data</li>
+ *   <li>Blood levels data</li>
+ *   <li>Alert triggers</li>
+ * </ul>
+ * </p>
+ */
 public class HealthDataSimulator {
 
     private static int patientCount = 50; // Default number of patients
@@ -32,6 +47,13 @@ public class HealthDataSimulator {
     private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy
     private static final Random random = new Random();
 
+    /**
+     * Main entry point for the health data simulation program.
+     *
+     * @param args Command-line arguments in the format:
+     *             [-h] [--patient-count <count>] [--output <type>]
+     * @throws IOException If file output directory creation fails
+     */
     public static void main(String[] args) throws IOException {
 
         parseArguments(args);
@@ -44,6 +66,12 @@ public class HealthDataSimulator {
         scheduleTasksForPatients(patientIds);
     }
 
+    /**
+     * Parses command-line arguments and configures the simulator accordingly.
+     *
+     * @param args Command-line arguments array
+     * @throws IOException If file output directory creation fails
+     */
     private static void parseArguments(String[] args) throws IOException {
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -105,6 +133,9 @@ public class HealthDataSimulator {
         }
     }
 
+    /**
+     * Prints help information describing command-line options and usage examples.
+     */
     private static void printHelp() {
         System.out.println("Usage: java HealthDataSimulator [options]");
         System.out.println("Options:");
@@ -122,6 +153,12 @@ public class HealthDataSimulator {
                 "  This command simulates data for 100 patients and sends the output to WebSocket clients connected to port 8080.");
     }
 
+    /**
+     * Initializes a list of patient IDs for the simulation.
+     *
+     * @param patientCount The number of patients to simulate
+     * @return List of patient IDs starting from 1 up to patientCount
+     */
     private static List<Integer> initializePatientIds(int patientCount) {
         List<Integer> patientIds = new ArrayList<>();
         for (int i = 1; i <= patientCount; i++) {
@@ -130,6 +167,19 @@ public class HealthDataSimulator {
         return patientIds;
     }
 
+    /**
+     * Schedules data generation tasks for all patients using configured output strategy.
+     * <p>
+     * Creates separate scheduled tasks for each data type with different intervals:
+     * <ul>
+     *   <li>ECG and blood saturation: every 1 second</li>
+     *   <li>Blood pressure: every 1 minute</li>
+     *   <li>Blood levels: every 2 minutes</li>
+     *   <li>Alerts: every 20 seconds</li>
+     * </ul>
+     *
+     * @param patientIds List of patient IDs to schedule tasks for
+     */
     private static void scheduleTasksForPatients(List<Integer> patientIds) {
         ECGDataGenerator ecgDataGenerator = new ECGDataGenerator(patientCount);
         BloodSaturationDataGenerator bloodSaturationDataGenerator = new BloodSaturationDataGenerator(patientCount);
@@ -146,6 +196,13 @@ public class HealthDataSimulator {
         }
     }
 
+    /**
+     * Schedules a recurring task with randomized initial delay.
+     *
+     * @param task      The Runnable task to schedule
+     * @param period    The interval between task executions
+     * @param timeUnit  The time unit for the period parameter
+     */
     private static void scheduleTask(Runnable task, long period, TimeUnit timeUnit) {
         scheduler.scheduleAtFixedRate(task, random.nextInt(5), period, timeUnit);
     }
