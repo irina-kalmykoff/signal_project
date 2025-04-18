@@ -41,7 +41,6 @@ import java.util.ArrayList;
  * </p>
  */
 public class HealthDataSimulator {
-
     private static int patientCount = 50; // Default number of patients
     private static ScheduledExecutorService scheduler;
     private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy
