@@ -1,0 +1,175 @@
+package test;
+
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.After;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.alerts.Alert;
+import com.alerts.AlertGenerator;
+import com.data_management.DataStorage;
+import com.data_management.FileDataReader;
+import com.data_management.Patient;
+import com.data_management.PatientRecord;
+
+/**
+ * JUnit test class specifically for testing the triggered alert functionality.
+ * This test addresses the issue with parsing "triggered" as a numeric value.
+ */
+public class TriggeredAlertTest {
+
+    private static final String TEST_DIR = "./test_alert_output";
+    private DataStorage dataStorage;
+    private TestAlertCollector alertCollector;
+
+    // Test alert collector to capture alerts
+    private static class TestAlertCollector extends AlertGenerator {
+        private List<Alert> capturedAlerts = new ArrayList<>();
+
+        public TestAlertCollector(DataStorage dataStorage) {
+            super(dataStorage);
+        }
+
+        @Override
+        protected void triggerAlert(Alert alert) {
+            capturedAlerts.add(alert);
+            // For debugging
+            System.out.println("CAPTURED ALERT: " + alert.getCondition() + 
+                    " for Patient ID: " + alert.getPatientId());
+        }
+
+        public List<Alert> getCapturedAlerts() {
+            return capturedAlerts;
+        }
+
+        public void clearAlerts() {
+            capturedAlerts.clear();
+        }
+    }
+
+    @Before
+    public void setUp() throws IOException {
+        // Create test directory
+        Path directoryPath = Paths.get(TEST_DIR);
+        if (!Files.exists(directoryPath)) {
+            Files.createDirectories(directoryPath);
+        }
+
+        // Set up data storage
+        dataStorage = new DataStorage();
+        alertCollector = new TestAlertCollector(dataStorage);
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        // Clean up test directory
+        Path directoryPath = Paths.get(TEST_DIR);
+        if (Files.exists(directoryPath)) {
+            Files.walk(directoryPath)
+                 .sorted((a, b) -> b.compareTo(a)) // Sort in reverse order to delete files before directories
+                 .forEach(path -> {
+                     try {
+                         Files.delete(path);
+                     } catch (IOException e) {
+                         System.err.println("Failed to delete: " + path);
+                     }
+                 });
+        }
+    }
+
+    /**
+     * Test that an alert record with numeric string ("1") is properly handled
+     */
+    @Test
+    public void testNumericStringTriggeredAlert() throws IOException {
+        // Create test data for a patient with a numeric string alert value
+        int patientId = 100;
+        createAlertPatientData(patientId, "1"); // Using "1" instead of "triggered"
+
+        // Read the data
+        FileDataReader reader = new FileDataReader(TEST_DIR);
+        reader.readData(dataStorage);
+
+        // Get the patient
+        Patient patient = dataStorage.getPatient(patientId);
+        assertNotNull("Patient should exist in data storage", patient);
+
+        // Print patient records for debugging
+        List<PatientRecord> records = patient.getRecords(0, Long.MAX_VALUE);
+        System.out.println("Patient " + patientId + " has " + records.size() + " records");
+        for (PatientRecord record : records) {
+            if ("Alert".equals(record.getRecordType())) {
+                System.out.println("Alert record found - Value: " + record.getMeasurementValue());
+            }
+        }
+
+        // Test alert evaluation
+        alertCollector.evaluateData(patient);
+        List<Alert> alerts = alertCollector.getCapturedAlerts();
+
+        // Assert that an alert was triggered
+        assertTrue("Should detect alert with numeric string value", alerts.size() >= 1);
+        
+        // Check for the specific call button alert
+        boolean foundCallButtonAlert = false;
+        for (Alert alert : alerts) {
+            if (alert.getCondition().contains("Call Button Alert")) {
+                foundCallButtonAlert = true;
+                break;
+            }
+        }
+        assertTrue("Should detect a call button alert", foundCallButtonAlert);
+    }
+
+    /**
+     * Test that the original string "triggered" causes a parsing error
+     */
+    @Test(expected = NumberFormatException.class)
+    public void testStringTriggeredAlert() throws IOException {
+        // Create test data with the problematic "triggered" string
+        int patientId = 101;
+        createAlertPatientData(patientId, "triggered"); // This should cause a NumberFormatException
+
+        // This should throw a NumberFormatException when trying to parse "triggered"
+        FileDataReader reader = new FileDataReader(TEST_DIR);
+        reader.readData(dataStorage);
+        
+        // We shouldn't reach this point, but if we do, the test should fail
+        fail("Expected NumberFormatException was not thrown");
+    }
+
+    /**
+     * Creates test data for a patient with a triggered alert
+     * @param patientId The patient ID
+     * @param alertValue The value to use for the alert ("triggered", "1", etc.)
+     */
+    private void createAlertPatientData(int patientId, String alertValue) throws IOException {
+        long baseTime = System.currentTimeMillis();
+        List<String> records = new ArrayList<>();
+        
+        // Add some normal vital signs
+        for (int i = 0; i < 10; i++) {
+            long timestamp = baseTime - (10 - i) * 60000; // Last 10 minutes
+            
+            records.add(String.format("%d,%d,%s,%.1f", patientId, timestamp, "SystolicPressure", 120.0));
+            records.add(String.format("%d,%d,%s,%.1f", patientId, timestamp, "DiastolicPressure", 80.0));
+            records.add(String.format("%d,%d,%s,%.1f", patientId, timestamp, "Saturation", 98.0));
+        }
+        
+        // Add a triggered alert
+        long alertTime = baseTime - 30 * 1000; // 30 seconds ago
+        records.add(String.format("%d,%d,%s,%s", patientId, alertTime, "Alert", alertValue));
+        
+        // Write to file
+        Path filePath = Paths.get(TEST_DIR, "patient_" + patientId + ".txt");
+        Files.write(filePath, records, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+}
