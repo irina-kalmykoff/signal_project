@@ -223,6 +223,7 @@ public class AlertGenerator {
 
             if (value < 92) {
                 isThresholdViolated = true;
+                //alertMessage = "Value: " + value + " is below 92? " + (value < 92) +  "Extremely low blood oxygen saturation level";
                 alertMessage = "Extremely low blood oxygen saturation level";
             }
             if (isThresholdViolated) {
@@ -247,39 +248,35 @@ public class AlertGenerator {
      */
     private void checkRapidSaturationDrop(Patient patient, List<PatientRecord> records) {
         if (records.size() < 2) {
-            // Need at least 2 readings to detect a drop
             return;
         }
+
         // Get the most recent reading
         PatientRecord latestRecord = records.get(records.size() - 1);
         double latestValue = latestRecord.getMeasurementValue();
-       // long latestTime = latestRecord.getTimestamp();
+        long latestTime = latestRecord.getTimestamp();
 
-        // Find the highest reading in the 10-minute window
-        double highestValueInWindow = latestValue; // Find the maximum and the minimum to see the largest delta
-        double lowestValueInWindow = latestValue; // Find the maximum and the minimum to see the largest delta
+        for (int i = 0; i < records.size() - 1; i++) {
+            PatientRecord earlierRecord = records.get(i);
+            double earlierValue = earlierRecord.getMeasurementValue();
+            long earlierTime = earlierRecord.getTimestamp();
 
-        for (PatientRecord record : records) {
-                double value = record.getMeasurementValue();
-                if (value > highestValueInWindow) {
-                    highestValueInWindow = value;
-                }
-                if (value < lowestValueInWindow) {
-                    lowestValueInWindow = value;
-                }
-        }
+            // Calculate the drop
+            double dropPercentage = earlierValue - latestValue;
 
-        // Calculate the percentage drop
-        double dropPercentage = highestValueInWindow - lowestValueInWindow;
-        if (dropPercentage > 5.0) {
-            String patientId = String.valueOf(latestRecord.getPatientId());
+            // Only alert if drop occurred within 10 minutes
+            long timeDifference = latestTime - earlierTime;
+            if (dropPercentage > 5.0 && timeDifference <= 10 * 60 * 1000) {
+                String patientId = String.valueOf(latestRecord.getPatientId());
 
-            Alert alert = new Alert(
-                    patientId,
-                    "Rapid Oxygen Saturation Drop of " + String.format("%.1f", dropPercentage) + "% in 10 minutes",
-                    System.currentTimeMillis()
-            );
-            triggerAlert(alert);
+                Alert alert = new Alert(
+                        patientId,
+                        "Rapid Oxygen Saturation Drop of " + String.format("%.1f", dropPercentage) + "% in 10 minutes",
+                        System.currentTimeMillis()
+                );
+                triggerAlert(alert);
+                return;
+            }
         }
     }
 
@@ -339,70 +336,164 @@ public class AlertGenerator {
      *
      * @param patient the patient to check for ECG abnormalities
      */
-    private void checkECGAbnormalities (Patient patient){
-            List<PatientRecord> ecgRecords = getFilteredRecords(patient, "ECG");
+    private void checkECGAbnormalities(Patient patient) {
+        List<PatientRecord> ecgRecords = getFilteredRecords(patient, "ECG");
 
-            if (ecgRecords.size() < 20) {
-                return;
+        if (ecgRecords.size() < 20) {
+            return;
+        }
+
+        // Get the latest record
+        PatientRecord latestRecord = ecgRecords.get(ecgRecords.size() - 1);
+        String patientId = String.valueOf(latestRecord.getPatientId());
+
+        // Calculate the mean and standard deviation of recent values
+        List<Double> recentValues = ecgRecords.stream()
+                .skip(Math.max(0, ecgRecords.size() - 600)) // Use more data if available
+                .map(PatientRecord::getMeasurementValue)
+                .collect(Collectors.toList());
+
+        double mean = recentValues.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double stdDev = Math.sqrt(recentValues.stream()
+                .mapToDouble(val -> Math.pow(val - mean, 2))
+                .average().orElse(0.0));
+
+        // Define upper and lower bounds (3 standard deviations)
+        double upperBound = mean + 3 * stdDev;
+        double lowerBound = mean - 3 * stdDev;
+
+        System.out.println("DEBUG - Patient " + patientId + " has " + ecgRecords.size() + " ECG records");
+        System.out.println("DEBUG - ECG stats: Mean=" + mean + ", StdDev=" + stdDev);
+        System.out.println("DEBUG - Bounds: [" + lowerBound + ", " + upperBound + "]");
+
+        // Check for abnormal patterns in the last few readings
+        int abnormalCount = 0;
+        boolean hasRapidChange = false;
+
+        // Look at last 5 readings for debugging
+        System.out.println("DEBUG - Last 5 ECG values:");
+        List<Double> last5Values = recentValues.subList(Math.max(0, recentValues.size() - 5), recentValues.size());
+
+        // Look at more readings for analysis
+        List<Double> lastReadings = recentValues.subList(Math.max(0, recentValues.size() - 10), recentValues.size());
+        double prevValue = lastReadings.get(0);
+
+        for (int i = 0; i < lastReadings.size(); i++) {
+            double currentValue = lastReadings.get(i);
+
+            // For debugging the last 5
+            if (i >= lastReadings.size() - 5) {
+                System.out.println("DEBUG - " + String.format("%.3f", currentValue) +
+                        (currentValue > upperBound || currentValue < lowerBound ? " OUT OF RANGE" : " in range"));
             }
 
-            // Get the latest record
-            PatientRecord latestRecord = ecgRecords.get(ecgRecords.size() - 1);
-            String patientId = String.valueOf(latestRecord.getPatientId());
-            double latestValue = latestRecord.getMeasurementValue();
-
-            // Calculate the mean and standard deviation of recent values
-            List<Double> recentValues = ecgRecords.stream()
-                    .skip(Math.max(0, ecgRecords.size() - 30)) // Last 30 readings
-                    .map(PatientRecord::getMeasurementValue)
-                    .collect(Collectors.toList());
-
-            double mean = recentValues.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            double stdDev = Math.sqrt(recentValues.stream()
-                    .mapToDouble(val -> Math.pow(val - mean, 2))
-                    .average().orElse(0.0));
-
-            // Define upper and lower bounds (3 standard deviations)
-            double upperBound = mean + 3 * stdDev;
-            double lowerBound = mean - 3 * stdDev;
-
-            // Check if the latest value exceeds bounds
-            if (latestValue > upperBound || latestValue < lowerBound) {
-                Alert alert = new Alert(
-                        patientId,
-                        "ECG Abnormality: Value " + String.format("%.2f", latestValue) +
-                                " outside expected range [" + String.format("%.2f", lowerBound) +
-                                ", " + String.format("%.2f", upperBound) + "]",
-                        System.currentTimeMillis()
-                );
-                triggerAlert(alert);
+            // Check for values outside statistical bounds
+            if (currentValue > upperBound || currentValue < lowerBound) {
+                abnormalCount++;
             }
-    }
 
+            // Check for rapid changes between consecutive readings
+            if (i > 0) {
+                double change = Math.abs(currentValue - prevValue);
+                double absoluteThreshold = 0.05; // Minimum absolute change to consider
+                double relativeThreshold = 2.5 * stdDev; // Relative to data variability
 
-    public void generate(int patientId, OutputStrategy outputStrategy) {
-        try {
-            if (alertStates[patientId]) {
-                if (randomGenerator.nextDouble() < RESOLUTION_PROBABILITY) {
-                    alertStates[patientId] = false;
-                    // Output the alert
-                    outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "0"); // for resolved
+                if (change > Math.max(absoluteThreshold, relativeThreshold)) {
+                    hasRapidChange = true;
                 }
-            } else {
-                double p = -Math.expm1(-ALERT_RATE_LAMBDA);
-                boolean alertTriggered = randomGenerator.nextDouble() < p;
-
-                if (alertTriggered) {
-                    alertStates[patientId] = true;
-                    // Output the alert
-                    outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "1"); // for triggered
-                }
             }
-        } catch (Exception e) {
-            System.err.println("An error occurred while generating alert data for patient " + patientId);
-            e.printStackTrace();
+
+            prevValue = currentValue;
+        }
+
+        // Check for both statistical outliers and pattern-based abnormalities
+        boolean abnormalPattern = checkForAbnormalPattern(lastReadings, mean, stdDev);
+
+        // Trigger alert if multiple abnormal readings or rapid changes or pattern detected
+        if ((abnormalCount >= 3) ||
+                (hasRapidChange && abnormalCount >= 1) ||
+                (abnormalPattern && abnormalCount >= 1))
+        {
+            Alert alert = new Alert(
+                    patientId,
+                    "ECG Abnormality: " +
+                            (abnormalCount >= 2 ? abnormalCount + " readings outside expected range" :
+                                    hasRapidChange ? "Rapid fluctuations detected" : "Abnormal pattern detected"),
+                    System.currentTimeMillis()
+            );
+            triggerAlert(alert);
         }
     }
+
+    /**
+     * Checks for specific abnormal patterns in ECG data
+     * This is a simplified implementation that looks for certain sequences
+     * that might indicate arrhythmias or other cardiac issues
+     */
+    private boolean checkForAbnormalPattern(List<Double> readings, double mean, double stdDev) {
+        // Check for alternating high-low pattern (potential indicator of certain arrhythmias)
+        boolean alternatingPattern = true;
+        boolean highToLow = readings.get(0) > readings.get(1);
+
+        for (int i = 1; i < readings.size() - 1; i++) {
+            boolean currentHighToLow = readings.get(i) > readings.get(i + 1);
+            if (currentHighToLow == highToLow) {
+                alternatingPattern = false;
+                break;
+            }
+            highToLow = currentHighToLow;
+        }
+
+        // Check for flatline pattern (multiple consecutive values very close to each other)
+        boolean flatlinePattern = true;
+        double threshold = stdDev * 0.2; // Very small variation threshold
+
+        for (int i = 0; i < readings.size() - 1; i++) {
+            if (Math.abs(readings.get(i) - readings.get(i + 1)) > threshold) {
+                flatlinePattern = false;
+                break;
+            }
+        }
+
+        // Check for consistent trend in one direction
+        boolean consistentTrend = true;
+        boolean increasing = readings.get(0) < readings.get(1);
+
+        for (int i = 1; i < readings.size() - 1; i++) {
+            boolean currentIncreasing = readings.get(i) < readings.get(i + 1);
+            if (currentIncreasing != increasing) {
+                consistentTrend = false;
+                break;
+            }
+        }
+
+        return alternatingPattern || flatlinePattern || consistentTrend;
+    }
+
+
+//    public void generate(int patientId, OutputStrategy outputStrategy) {
+//        try {
+//            if (alertStates[patientId]) {
+//                if (randomGenerator.nextDouble() < RESOLUTION_PROBABILITY) {
+//                    alertStates[patientId] = false;
+//                    // Output the alert
+//                    outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "0"); // for resolved
+//                }
+//            } else {
+//                double p = -Math.expm1(-ALERT_RATE_LAMBDA);
+//                boolean alertTriggered = randomGenerator.nextDouble() < p;
+//
+//                if (alertTriggered) {
+//                    alertStates[patientId] = true;
+//                    // Output the alert
+//                    outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "1"); // for triggered
+//                }
+//            }
+//        } catch (Exception e) {
+//            System.err.println("An error occurred while generating alert data for patient " + patientId);
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * Monitors for manually triggered alerts from patients or staff.
