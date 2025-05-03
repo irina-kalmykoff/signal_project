@@ -32,10 +32,10 @@ public class TestDataGenerator {
         
         // Create test patients with different scenarios
         generateNormalPatient(0);                                 // No alerts
-        generateIncreasingTrendPatient(1, 12);                    // Increasing trend > 10mmHg (alert)
-        generateIncreasingTrendPatient(2, 10);                    // Increasing trend = 10mmHg (no alert)
-        generateDecreasingTrendPatient(3, 12);                    // Decreasing trend > 10mmHg (alert)
-        generateDecreasingTrendPatient(4, 10);                    // Decreasing trend = 10mmHg (no alert)
+        generateIncreasingTrendPatient(1, 12);          // Increasing trend > 10mmHg (alert)
+        generateIncreasingTrendPatient(2, 10);          // Increasing trend = 10mmHg (no alert)
+        generateDecreasingTrendPatient(3, 12);          // Decreasing trend > 10mmHg (alert)
+        generateDecreasingTrendPatient(4, 10);          // Decreasing trend = 10mmHg (no alert)
         generateHighBloodPressurePatient(5);                      // BP > thresholds (alert)
         generateLowBloodPressurePatient(6);                       // BP < thresholds (alert)
         generateBorderlineHighBPPatient(7);                       // BP = high thresholds (no alert)

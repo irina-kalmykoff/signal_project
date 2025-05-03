@@ -36,9 +36,6 @@ public class AlertSystemTest {
             return capturedAlerts.size();
         }
         
-        // public List<Alert> getCapturedAlerts() {
-        //     return capturedAlerts;
-        // }
         
         public List<Alert> getAlertsForPatient(String patientId) {
             List<Alert> patientAlerts = new ArrayList<>();
