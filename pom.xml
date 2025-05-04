@@ -17,7 +17,13 @@
         <project.resources.sourceEncoding>UTF-8</project.resources.sourceEncoding>
 
     </properties>
-
+        <repositories>
+            <repository>
+                <id>central</id>
+                <name>Maven Central</name>
+                <url>https://repo.maven.apache.org/maven2</url>
+            </repository>
+        </repositories>
     <dependencies>
 
         <!-- Java-WebSocket for WebSocket client -->
@@ -28,10 +34,17 @@
         </dependency>
 
         <!-- add junit dependency -->
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.10.2</version> <!-- or latest stable version -->
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -63,6 +76,25 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
