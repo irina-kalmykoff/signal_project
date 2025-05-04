@@ -59,3 +59,4 @@ hs_err_pid*
 /local/
 /.env
 /.env.local
+"test_output/" 
