@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Patient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.data_management</a> &gt; <span class="el_source">Patient.java</span></div><h1>Patient.java</h1><pre class="source lang-java linenums">package com.data_management;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents a patient and manages their medical records.
+ * This class stores patient-specific data, allowing for the addition and
+ * retrieval
+ * of medical records based on specified criteria.
+ */
+public class Patient {
+    private int patientId;
+    private List&lt;PatientRecord&gt; patientRecords;
+
+    /**
+     * Constructs a new Patient with a specified ID.
+     * Initializes an empty list of patient records.
+     *
+     * @param patientId the unique identifier for the patient
+     */
+<span class="fc" id="L22">    public Patient(int patientId) {</span>
+<span class="fc" id="L23">        this.patientId = patientId;</span>
+<span class="fc" id="L24">        this.patientRecords = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L25">    }</span>
+
+    /**
+     * Adds a new record to this patient's list of medical records.
+     * The record is created with the specified measurement value, record type, and
+     * timestamp.
+     *
+     * @param measurementValue the measurement value to store in the record
+     * @param recordType       the type of record, e.g., &quot;HeartRate&quot;,
+     *                         &quot;BloodPressure&quot;
+     * @param timestamp        the time at which the measurement was taken, in
+     *                         milliseconds since UNIX epoch
+     */
+    public void addRecord(double measurementValue, String recordType, long timestamp) {
+<span class="fc" id="L39">        PatientRecord record = new PatientRecord(this.patientId, measurementValue, recordType, timestamp);</span>
+<span class="fc" id="L40">        this.patientRecords.add(record);</span>
+<span class="fc" id="L41">    }</span>
+
+    /**
+     * Retrieves a list of PatientRecord objects for this patient that fall within a
+     * specified time range.
+     * The method filters records based on the start and end times provided.
+     *
+     * @param startTime the start of the time range, in milliseconds since UNIX
+     *                  epoch
+     * @param endTime   the end of the time range, in milliseconds since UNIX epoch
+     * @return a list of PatientRecord objects that fall within the specified time
+     *         range
+     */
+    public List&lt;PatientRecord&gt; getRecords(long startTime, long endTime) {
+        // TODO Implement and test this method
+<span class="fc" id="L56">        List&lt;PatientRecord&gt; filteredRecords = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (PatientRecord record : patientRecords) {</span>
+<span class="fc" id="L59">            long timestamp = record.getTimestamp();</span>
+<span class="fc bfc" id="L60" title="All 4 branches covered.">            if (timestamp &gt;= startTime &amp;&amp; timestamp &lt;= endTime) {</span>
+<span class="fc" id="L61">                filteredRecords.add(record);</span>
+            }
+        }
+
+<span class="fc" id="L65">        return filteredRecords;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

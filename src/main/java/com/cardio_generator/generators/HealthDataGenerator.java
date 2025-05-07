@@ -1,8 +1,8 @@
-package com.cardio_generator;
+package com.cardio_generator.generators;
 
 import java.util.Random;
 import com.cardio_generator.outputs.OutputStrategy;
-import com.data_management.Patient;
+//import com.data_management.Patient;
 
 /**
  * The {@code HealthDataGenerator} class is responsible for generating various health data,
