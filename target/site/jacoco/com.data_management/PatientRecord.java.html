@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PatientRecord.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.data_management</a> &gt; <span class="el_source">PatientRecord.java</span></div><h1>PatientRecord.java</h1><pre class="source lang-java linenums">package com.data_management;
+
+/**
+ * Represents a single record of patient data at a specific point in time.
+ * This class stores all necessary details for a single observation or
+ * measurement
+ * taken from a patient, including the type of record (such as ECG, blood
+ * pressure),
+ * the measurement value, and the exact timestamp when the measurement was
+ * taken.
+ */
+public class PatientRecord {
+    private int patientId;
+    private String recordType; // Example: ECG, blood pressure, etc.
+    private double measurementValue; // Example: heart rate
+    private long timestamp;
+
+    /**
+     * Constructs a new patient record with specified details.
+     * 
+     * @param patientId        the unique identifier for the patient
+     * @param measurementValue the numerical value of the recorded measurement
+     * @param recordType       the type of measurement (e.g., &quot;ECG&quot;, &quot;Blood
+     *                         Pressure&quot;)
+     * @param timestamp        the time at which the measurement was recorded, in
+     *                         milliseconds since epoch
+     */
+<span class="fc" id="L28">    public PatientRecord(int patientId, double measurementValue, String recordType, long timestamp) {</span>
+<span class="fc" id="L29">        this.patientId = patientId;</span>
+<span class="fc" id="L30">        this.measurementValue = measurementValue;</span>
+<span class="fc" id="L31">        this.recordType = recordType;</span>
+<span class="fc" id="L32">        this.timestamp = timestamp;</span>
+<span class="fc" id="L33">    }</span>
+
+    /**
+     * Returns the patient ID associated with this record.
+     * 
+     * @return the patient ID
+     */
+    public int getPatientId() {
+<span class="fc" id="L41">        return patientId;</span>
+    }
+
+    /**
+     * Returns the measurement value of this record.
+     * 
+     * @return the measurement value
+     */
+    public double getMeasurementValue() {
+<span class="fc" id="L50">        return measurementValue;</span>
+    }
+
+    /**
+     * Returns the timestamp when this record was taken.
+     * 
+     * @return the timestamp in milliseconds since epoch
+     */
+    public long getTimestamp() {
+<span class="fc" id="L59">        return timestamp;</span>
+    }
+
+    /**
+     * Returns the type of record (e.g., &quot;ECG&quot;, &quot;Blood Pressure&quot;).
+     * 
+     * @return the record type
+     */
+    public String getRecordType() {
+<span class="fc" id="L68">        return recordType;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

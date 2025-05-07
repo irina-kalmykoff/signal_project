@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ECGDataGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.cardio_generator.generators</a> &gt; <span class="el_source">ECGDataGenerator.java</span></div><h1>ECGDataGenerator.java</h1><pre class="source lang-java linenums">package com.cardio_generator.generators;
+
+import java.util.Random;
+
+import com.cardio_generator.outputs.OutputStrategy;
+
+public class ECGDataGenerator implements PatientDataGenerator {
+<span class="fc" id="L8">    private static final Random random = new Random();</span>
+    private double[] lastEcgValues;
+<span class="fc" id="L10">    private static final double PI = Math.PI;</span>
+
+<span class="fc" id="L12">    public ECGDataGenerator(int patientCount) {</span>
+<span class="fc" id="L13">        lastEcgValues = new double[patientCount + 1];</span>
+        // Initialize the last ECG value for each patient
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        for (int i = 1; i &lt;= patientCount; i++) {</span>
+<span class="fc" id="L16">            lastEcgValues[i] = 0; // Initial ECG value can be set to 0</span>
+        }
+<span class="fc" id="L18">    }</span>
+
+    @Override
+    public void generate(int patientId, OutputStrategy outputStrategy) {
+        // TODO Check how realistic this data is and make it more realistic if necessary
+        try {
+<span class="fc" id="L24">            double ecgValue = simulateEcgWaveform(patientId, lastEcgValues[patientId]);</span>
+<span class="fc" id="L25">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;ECG&quot;, Double.toString(ecgValue));</span>
+<span class="fc" id="L26">            lastEcgValues[patientId] = ecgValue;</span>
+<span class="pc" id="L27">        } catch (Exception e) {</span>
+<span class="nc" id="L28">            System.err.println(&quot;An error occurred while generating ECG data for patient &quot; + patientId);</span>
+<span class="nc" id="L29">            e.printStackTrace(); // This will print the stack trace to help identify where the error occurred.</span>
+        }
+<span class="fc" id="L31">    }</span>
+
+    private double simulateEcgWaveform(int patientId, double lastEcgValue) {
+        // Simplified ECG waveform generation based on sinusoids
+<span class="fc" id="L35">        double hr = 60.0 + random.nextDouble() * 20.0; // Simulate heart rate variability between 60 and 80 bpm</span>
+<span class="fc" id="L36">        double t = System.currentTimeMillis() / 1000.0; // Use system time to simulate continuous time</span>
+<span class="fc" id="L37">        double ecgFrequency = hr / 60.0; // Convert heart rate to Hz</span>
+
+        // Simulate different components of the ECG signal
+<span class="fc" id="L40">        double pWave = 0.1 * Math.sin(2 * PI * ecgFrequency * t);</span>
+<span class="fc" id="L41">        double qrsComplex = 0.5 * Math.sin(2 * PI * 3 * ecgFrequency * t); // QRS is higher frequency</span>
+<span class="fc" id="L42">        double tWave = 0.2 * Math.sin(2 * PI * 2 * ecgFrequency * t + PI / 4); // T wave is offset</span>
+
+<span class="fc" id="L44">        return pWave + qrsComplex + tWave + random.nextDouble() * 0.05; // Add small noise</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
