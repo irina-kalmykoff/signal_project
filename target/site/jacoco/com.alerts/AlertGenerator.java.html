@@ -142,7 +142,7 @@ public class AlertGenerator {
 <span class="fc" id="L142">            String patientId = String.valueOf(current.getPatientId());</span>
 
             // Check for increasing trend
-<span class="pc bpc" id="L145" title="1 of 4 branches missed.">            if (currentValue - previousValue &gt; 10 &amp;&amp; previousValue - oldestValue &gt; 10) {               </span>
+<span class="fc bfc" id="L145" title="All 4 branches covered.">            if (currentValue - previousValue &gt; 10 &amp;&amp; previousValue - oldestValue &gt; 10) {               </span>
 
 <span class="fc" id="L147">                Alert alert = new Alert(</span>
 <span class="fc" id="L148">                        String.valueOf(patientId),</span>
@@ -154,7 +154,7 @@ public class AlertGenerator {
             }
 
             // Check for decreasing trend
-<span class="pc bpc" id="L157" title="1 of 4 branches missed.">            if (previousValue - currentValue &gt; 10 &amp;&amp; oldestValue - previousValue &gt; 10) {</span>
+<span class="fc bfc" id="L157" title="All 4 branches covered.">            if (previousValue - currentValue &gt; 10 &amp;&amp; oldestValue - previousValue &gt; 10) {</span>
 
 <span class="fc" id="L159">                Alert alert = new Alert(</span>
 <span class="fc" id="L160">                        String.valueOf(patientId),</span>
@@ -308,7 +308,7 @@ public class AlertGenerator {
 
 <span class="fc bfc" id="L309" title="All 2 branches covered.">                for (PatientRecord saturation : saturationRecords) {</span>
 <span class="fc" id="L310">                    long saturationTimestamp = saturation.getTimestamp();</span>
-<span class="pc bpc" id="L311" title="1 of 4 branches missed.">                    if (saturationTimestamp &gt;= oneMinuteBack &amp;&amp; saturationTimestamp &lt;= oneMinuteForward) {</span>
+<span class="fc bfc" id="L311" title="All 4 branches covered.">                    if (saturationTimestamp &gt;= oneMinuteBack &amp;&amp; saturationTimestamp &lt;= oneMinuteForward) {</span>
 <span class="fc" id="L312">                        double saturationValue = saturation.getMeasurementValue();</span>
 
 <span class="fc bfc" id="L314" title="All 2 branches covered.">                        if (saturationValue &lt; 92) {</span>
@@ -388,7 +388,7 @@ public class AlertGenerator {
             }
 
             // Check for values outside statistical bounds
-<span class="pc bpc" id="L391" title="1 of 4 branches missed.">            if (currentValue &gt; upperBound || currentValue &lt; lowerBound) {</span>
+<span class="fc bfc" id="L391" title="All 4 branches covered.">            if (currentValue &gt; upperBound || currentValue &lt; lowerBound) {</span>
 <span class="fc" id="L392">                abnormalCount++;</span>
             }
 
@@ -410,14 +410,14 @@ public class AlertGenerator {
 <span class="fc" id="L410">        boolean abnormalPattern = checkForAbnormalPattern(lastReadings, mean, stdDev);</span>
 
         // Trigger alert if multiple abnormal readings or rapid changes or pattern detected
-<span class="pc bpc" id="L413" title="1 of 2 branches missed.">        if ((abnormalCount &gt;= 3) ||</span>
-<span class="pc bpc" id="L414" title="1 of 4 branches missed.">                (hasRapidChange &amp;&amp; abnormalCount &gt;= 1) ||</span>
-<span class="pc bpc" id="L415" title="2 of 4 branches missed.">                (abnormalPattern &amp;&amp; abnormalCount &gt;= 1))</span>
+<span class="fc bfc" id="L413" title="All 2 branches covered.">        if ((abnormalCount &gt;= 3) ||</span>
+<span class="fc bfc" id="L414" title="All 4 branches covered.">                (hasRapidChange &amp;&amp; abnormalCount &gt;= 1) ||</span>
+<span class="pc bpc" id="L415" title="1 of 4 branches missed.">                (abnormalPattern &amp;&amp; abnormalCount &gt;= 1))</span>
         {
 <span class="fc" id="L417">            Alert alert = new Alert(</span>
 <span class="fc" id="L418">                    patientId,</span>
 <span class="fc" id="L419">                    &quot;ECG Abnormality: &quot; +</span>
-<span class="pc bpc" id="L420" title="1 of 2 branches missed.">                            (abnormalCount &gt;= 2 ? abnormalCount + &quot; readings outside expected range&quot; :</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">                            (abnormalCount &gt;= 2 ? abnormalCount + &quot; readings outside expected range&quot; :</span>
 <span class="pc bpc" id="L421" title="1 of 2 branches missed.">                                    hasRapidChange ? &quot;Rapid fluctuations detected&quot; : &quot;Abnormal pattern detected&quot;),</span>
 <span class="fc" id="L422">                    System.currentTimeMillis()</span>
             );
