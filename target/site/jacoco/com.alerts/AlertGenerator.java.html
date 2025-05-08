@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AlertGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.alerts</a> &gt; <span class="el_source">AlertGenerator.java</span></div><h1>AlertGenerator.java</h1><pre class="source lang-java linenums">package com.alerts;
+import java.util.*;
+import java.util.stream.Collectors;
+import com.cardio_generator.outputs.OutputStrategy;
+
+import com.data_management.DataStorage;
+import com.data_management.Patient;
+import com.data_management.PatientRecord;
+
+
+import java.util.List;
+
+/**
+ * The {@code AlertGenerator} class is responsible for monitoring patient data
+ * and generating alerts when certain predefined conditions are met. This class
+ * relies on a {@link DataStorage} instance to access patient data and evaluate
+ * it against specific health criteria.
+ */
+public class AlertGenerator {
+    //private DataStorage dataStorage;
+    private boolean[] alertStates;
+    private Random randomGenerator;
+    private static final double RESOLUTION_PROBABILITY = 0.1;
+    private static final double ALERT_RATE_LAMBDA = 0.1;
+
+    /**
+     * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
+     * The {@code DataStorage} is used to retrieve patient data that this class
+     * will monitor and evaluate.
+     *
+     * @param dataStorage the data storage system that provides access to patient
+     *                    data
+     */
+<span class="fc" id="L34">    public AlertGenerator(DataStorage dataStorage) {</span>
+       // this.dataStorage = dataStorage;
+<span class="fc" id="L36">        this.alertStates = new boolean[1000]; // Assuming max 1000 patients</span>
+<span class="fc" id="L37">        this.randomGenerator = new Random();</span>
+<span class="fc" id="L38">    }</span>
+
+    /**
+     * Evaluates the specified patient's data to determine if any alert conditions
+     * are met. If a condition is met, an alert is triggered via the
+     * {@link #triggerAlert}
+     * method. This method should define the specific conditions under which an
+     * alert
+     * will be triggered.
+     *
+     * @param patient the patient data to evaluate for alert conditions
+     */
+    public void evaluateData(Patient patient) {
+        // Calling the helper methods
+<span class="fc" id="L52">        checkBloodPressure(patient); // 1 method for all blood-related checks</span>
+<span class="fc" id="L53">        checkECGAbnormalities(patient);</span>
+<span class="fc" id="L54">        checkTriggeredAlert(patient);</span>
+<span class="fc" id="L55">    }</span>
+
+
+    /**
+     * Helper method to get filtered and sorted patient records for the latest 10 minutes for  a specific type
+     *
+     * @param patient    the patient whose records to retrieve
+     * @param recordType the type of record to filter for (e.g., &quot;SystolicPressure&quot;)
+     * @return a list of patient records of the specified type, sorted by timestamp
+     */
+    private List&lt;PatientRecord&gt; getFilteredRecords(Patient patient, String recordType) {
+
+        // Calculate timestamp for 10 minutes ago
+<span class="fc" id="L68">        long tenMinutesAgo = System.currentTimeMillis() - (10 * 60 * 1000);</span>
+
+        // Get the patient's records for the past 10 minutes
+<span class="fc" id="L71">        List&lt;PatientRecord&gt; allRecords = patient.getRecords(tenMinutesAgo, Long.MAX_VALUE);</span>
+
+        // Filter to only the specified record type and sort by timestamp
+<span class="fc" id="L74">        return allRecords.stream()</span>
+<span class="fc" id="L75">                .filter(record -&gt; record.getRecordType().equals(recordType))</span>
+<span class="fc" id="L76">                .sorted(Comparator.comparing(PatientRecord::getTimestamp))</span>
+<span class="fc" id="L77">                .collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Coordinates all blood pressure and oxygenation related alert checks for a patient.
+     * This method retrieves the relevant vital sign records and delegates to specialized
+     * check methods for different alert conditions.
+     *
+     * The method performs comprehensive monitoring by checking:
+     * - Blood pressure trends (increasing or decreasing)
+     * - Blood pressure threshold violations
+     * - Low oxygen saturation levels
+     * - Rapid drops in oxygen saturation
+     * - Combined hypotensive hypoxemia condition
+     *
+     * @param patient the patient to evaluate for cardiovascular and respiratory alerts
+     */
+    private void checkBloodPressure(Patient patient) {
+        // Get filtered records for each pressure type
+<span class="fc" id="L96">        List&lt;PatientRecord&gt; systolicRecords = getFilteredRecords(patient, &quot;SystolicPressure&quot;);</span>
+<span class="fc" id="L97">        List&lt;PatientRecord&gt; diastolicRecords = getFilteredRecords(patient, &quot;DiastolicPressure&quot;);</span>
+<span class="fc" id="L98">        List&lt;PatientRecord&gt; saturationRecords = getFilteredRecords(patient, &quot;Saturation&quot;);</span>
+
+        // Check blood pressure trends
+<span class="fc" id="L101">        checkPressureTrend(patient, systolicRecords, &quot;Systolic&quot;);</span>
+<span class="fc" id="L102">        checkPressureTrend(patient, diastolicRecords, &quot;Diastolic&quot;);</span>
+        // Check for blood pressure thesholds
+<span class="fc" id="L104">        checkBloodPressureThreshold(patient, systolicRecords, &quot;Systolic&quot;);</span>
+<span class="fc" id="L105">        checkBloodPressureThreshold(patient, diastolicRecords, &quot;Diastolic&quot;);</span>
+        // Check saturation
+<span class="fc" id="L107">        checkLowSaturation(patient, saturationRecords);</span>
+<span class="fc" id="L108">        checkRapidSaturationDrop(patient, saturationRecords);</span>
+        // CHeck for hypotensive hypoxemia
+<span class="fc" id="L110">        checkHypotensiveHypoxemia(patient, systolicRecords, saturationRecords);</span>
+
+<span class="fc" id="L112">    }</span>
+
+    /**
+     * Monitors blood pressure readings to detect significant upward or downward trends.
+     * This method looks for consistent changes of more than 10 mmHg between consecutive
+     * readings, which could indicate an underlying clinical issue requiring attention.
+     *
+     * The method analyzes sets of three consecutive readings, looking for either:
+     * - An increasing trend (each reading at least 10 mmHg higher than the previous)
+     * - A decreasing trend (each reading at least 10 mmHg lower than the previous)
+     *
+     * @param patient the patient to monitor for blood pressure trends
+     * @param records the list of blood pressure records to analyze
+     * @param pressureType the type of pressure being analyzed (&quot;Systolic&quot; or &quot;Diastolic&quot;)
+     */
+    private void checkPressureTrend(Patient patient, List&lt;PatientRecord&gt; records, String pressureType) {
+        // We need at least 3 readings to detect a trend
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (records.size() &lt; 3) {</span>
+<span class="fc" id="L130">            return;</span>
+        }
+
+        // Check the last 3 readings for trends
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        for (int i = records.size() - 1; i &gt;= 2; i--) {</span>
+<span class="fc" id="L135">            PatientRecord current = records.get(i);</span>
+<span class="fc" id="L136">            PatientRecord previous = records.get(i - 1);</span>
+<span class="fc" id="L137">            PatientRecord oldest = records.get(i - 2);</span>
+
+<span class="fc" id="L139">            double currentValue = current.getMeasurementValue();</span>
+<span class="fc" id="L140">            double previousValue = previous.getMeasurementValue();</span>
+<span class="fc" id="L141">            double oldestValue = oldest.getMeasurementValue();</span>
+<span class="fc" id="L142">            String patientId = String.valueOf(current.getPatientId());</span>
+
+            // Check for increasing trend
+<span class="fc bfc" id="L145" title="All 4 branches covered.">            if (currentValue - previousValue &gt; 10 &amp;&amp; previousValue - oldestValue &gt; 10) {               </span>
+
+<span class="fc" id="L147">                Alert alert = new Alert(</span>
+<span class="fc" id="L148">                        String.valueOf(patientId),</span>
+<span class="fc" id="L149">                        &quot;Increasing &quot; + pressureType + &quot; Blood Pressure Trend&quot;,</span>
+<span class="fc" id="L150">                        System.currentTimeMillis()</span>
+                );
+<span class="fc" id="L152">                triggerAlert(alert);</span>
+<span class="fc" id="L153">                return;</span>
+            }
+
+            // Check for decreasing trend
+<span class="fc bfc" id="L157" title="All 4 branches covered.">            if (previousValue - currentValue &gt; 10 &amp;&amp; oldestValue - previousValue &gt; 10) {</span>
+
+<span class="fc" id="L159">                Alert alert = new Alert(</span>
+<span class="fc" id="L160">                        String.valueOf(patientId),</span>
+<span class="fc" id="L161">                        &quot;Decreasing &quot; + pressureType + &quot; Blood Pressure Trend&quot;,</span>
+<span class="fc" id="L162">                        System.currentTimeMillis()</span>
+                );
+<span class="fc" id="L164">                triggerAlert(alert);</span>
+<span class="fc" id="L165">                return;</span>
+            }
+        }
+<span class="fc" id="L168">    }</span>
+
+    private void checkBloodPressureThreshold(Patient patient, List&lt;PatientRecord&gt; records, String pressureType) {
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (records.isEmpty()) {</span>
+<span class="fc" id="L172">            return;</span>
+        }
+<span class="fc bfc" id="L174" title="All 2 branches covered.">        for (int i = 0; i &lt; records.size(); i++) {</span>
+<span class="fc" id="L175">            PatientRecord record = records.get(i);</span>
+<span class="fc" id="L176">            Double value = record.getMeasurementValue();</span>
+<span class="fc" id="L177">            String patientId = String.valueOf(record.getPatientId());</span>
+
+<span class="fc" id="L179">            boolean isThresholdViolated = false;</span>
+<span class="fc" id="L180">            String alertMessage = &quot;&quot;;</span>
+
+<span class="fc bfc" id="L182" title="All 6 branches covered.">            if (pressureType.equals(&quot;Systolic&quot;) &amp;&amp; (value &gt; 180 || value &lt; 90)) {</span>
+<span class="fc" id="L183">                isThresholdViolated = true;</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">                alertMessage = value &gt; 180 ? &quot;Extremely high systolic pressure&quot; : &quot;Extremely low systolic pressure&quot;;</span>
+<span class="fc bfc" id="L185" title="All 6 branches covered.">            } else if (pressureType.equals(&quot;Diastolic&quot;) &amp;&amp; (value &gt; 120 || value &lt; 60)) {</span>
+<span class="fc" id="L186">                isThresholdViolated = true;</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">                alertMessage = value &gt; 120 ? &quot;Extremely high diastolic pressure&quot; : &quot;Extremely low diastolic pressure&quot;;</span>
+            }
+
+<span class="fc bfc" id="L190" title="All 2 branches covered.">            if (isThresholdViolated) {</span>
+<span class="fc" id="L191">                Alert alert = new Alert(</span>
+<span class="fc" id="L192">                        patientId,</span>
+<span class="fc" id="L193">                        alertMessage + &quot; (&quot; + value + &quot; mmHg)&quot;,</span>
+<span class="fc" id="L194">                        System.currentTimeMillis()</span>
+                );
+<span class="fc" id="L196">                triggerAlert(alert);</span>
+<span class="fc" id="L197">                return;  // Exit after finding the first violation to avoid multiple alerts</span>
+            }
+        }
+
+<span class="fc" id="L201">    }</span>
+
+    /**
+     * Checks if the patient's blood oxygen saturation level is below the critical threshold of 92%.
+     * Low blood oxygen saturation can indicate respiratory distress or other serious conditions.
+     *
+     * @param patient the patient to check for low saturation
+     * @param records the list of saturation records to analyze
+     */
+
+    private void checkLowSaturation(Patient patient, List&lt;PatientRecord&gt; records) {
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (records.isEmpty()) {</span>
+<span class="fc" id="L213">            return;</span>
+        }
+
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        for (int i = 0; i &lt; records.size(); i++) {</span>
+<span class="fc" id="L217">            PatientRecord record = records.get(i);</span>
+<span class="fc" id="L218">            Double value = record.getMeasurementValue();</span>
+<span class="fc" id="L219">            String patientId = String.valueOf(record.getPatientId());</span>
+
+<span class="fc" id="L221">            boolean isThresholdViolated = false;</span>
+<span class="fc" id="L222">            String alertMessage = &quot;&quot;;</span>
+
+<span class="fc bfc" id="L224" title="All 2 branches covered.">            if (value &lt; 92) {</span>
+<span class="fc" id="L225">                isThresholdViolated = true;</span>
+                //alertMessage = &quot;Value: &quot; + value + &quot; is below 92? &quot; + (value &lt; 92) +  &quot;Extremely low blood oxygen saturation level&quot;;
+<span class="fc" id="L227">                alertMessage = &quot;Extremely low blood oxygen saturation level&quot;;</span>
+            }
+<span class="fc bfc" id="L229" title="All 2 branches covered.">            if (isThresholdViolated) {</span>
+<span class="fc" id="L230">                Alert alert = new Alert(</span>
+<span class="fc" id="L231">                        patientId,</span>
+<span class="fc" id="L232">                        alertMessage + &quot; (&quot; + value + &quot;%)&quot;,</span>
+<span class="fc" id="L233">                        System.currentTimeMillis()</span>
+                );
+<span class="fc" id="L235">                triggerAlert(alert);</span>
+<span class="fc" id="L236">                return;  // Exit after finding the first violation to avoid multiple alerts</span>
+            }
+        }
+<span class="fc" id="L239">    }</span>
+
+    /**
+     * Detects rapid drops in blood oxygen saturation over a 10-minute period.
+     * Triggers an alert if a drop of 5% or more is detected, which could indicate
+     * deteriorating respiratory function or other acute issues.
+     *
+     * @param patient the patient to check for saturation drops
+     * @param records the list of saturation records to analyze
+     */
+    private void checkRapidSaturationDrop(Patient patient, List&lt;PatientRecord&gt; records) {
+<span class="fc bfc" id="L250" title="All 2 branches covered.">        if (records.size() &lt; 2) {</span>
+<span class="fc" id="L251">            return;</span>
+        }
+
+        // Get the most recent reading
+<span class="fc" id="L255">        PatientRecord latestRecord = records.get(records.size() - 1);</span>
+<span class="fc" id="L256">        double latestValue = latestRecord.getMeasurementValue();</span>
+<span class="fc" id="L257">        long latestTime = latestRecord.getTimestamp();</span>
+
+<span class="fc bfc" id="L259" title="All 2 branches covered.">        for (int i = 0; i &lt; records.size() - 1; i++) {</span>
+<span class="fc" id="L260">            PatientRecord earlierRecord = records.get(i);</span>
+<span class="fc" id="L261">            double earlierValue = earlierRecord.getMeasurementValue();</span>
+<span class="fc" id="L262">            long earlierTime = earlierRecord.getTimestamp();</span>
+
+            // Calculate the drop
+<span class="fc" id="L265">            double dropPercentage = earlierValue - latestValue;</span>
+
+            // Only alert if drop occurred within 10 minutes
+<span class="fc" id="L268">            long timeDifference = latestTime - earlierTime;</span>
+<span class="pc bpc" id="L269" title="1 of 4 branches missed.">            if (dropPercentage &gt; 5.0 &amp;&amp; timeDifference &lt;= 10 * 60 * 1000) {</span>
+<span class="fc" id="L270">                String patientId = String.valueOf(latestRecord.getPatientId());</span>
+
+<span class="fc" id="L272">                Alert alert = new Alert(</span>
+<span class="fc" id="L273">                        patientId,</span>
+<span class="fc" id="L274">                        &quot;Rapid Oxygen Saturation Drop of &quot; + String.format(&quot;%.1f&quot;, dropPercentage) + &quot;% in 10 minutes&quot;,</span>
+<span class="fc" id="L275">                        System.currentTimeMillis()</span>
+                );
+<span class="fc" id="L277">                triggerAlert(alert);</span>
+<span class="fc" id="L278">                return;</span>
+            }
+        }
+<span class="fc" id="L281">    }</span>
+
+    /**
+     * Checks for the dangerous condition of hypotensive hypoxemia, which occurs when
+     * a patient has both low blood pressure (systolic &lt; 90 mmHg) and low oxygen saturation
+     * (&lt; 92%) within a short time period. This combination can indicate severe clinical
+     * deterioration requiring immediate intervention.
+     *
+     * @param patient the patient to check
+     * @param systolicRecords the list of systolic blood pressure records
+     * @param saturationRecords the list of oxygen saturation records
+     */
+    private void checkHypotensiveHypoxemia (Patient patient, List&lt;PatientRecord&gt; systolicRecords,
+                                            List&lt;PatientRecord&gt; saturationRecords){
+<span class="pc bpc" id="L295" title="1 of 4 branches missed.">        if (systolicRecords.isEmpty() || saturationRecords.isEmpty()) {</span>
+<span class="fc" id="L296">            return;</span>
+        }
+       // boolean isHypotensiveHypoxemia = false;
+<span class="fc" id="L299">        String patientId = String.valueOf(systolicRecords.get(systolicRecords.size()-1).getPatientId());</span>
+
+<span class="fc bfc" id="L301" title="All 2 branches covered.">        for (PatientRecord systolicPressure : systolicRecords) {</span>
+<span class="fc" id="L302">            double systolicPressureValue = systolicPressure.getMeasurementValue();</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">            if (systolicPressureValue &lt; 90) {</span>
+
+<span class="fc" id="L305">                long systolicPressureTimestamp = systolicPressure.getTimestamp();</span>
+<span class="fc" id="L306">                long oneMinuteBack = systolicPressureTimestamp - (1 * 60 * 1000);</span>
+<span class="fc" id="L307">                long oneMinuteForward = systolicPressureTimestamp + (1 * 60 * 1000);</span>
+
+<span class="fc bfc" id="L309" title="All 2 branches covered.">                for (PatientRecord saturation : saturationRecords) {</span>
+<span class="fc" id="L310">                    long saturationTimestamp = saturation.getTimestamp();</span>
+<span class="fc bfc" id="L311" title="All 4 branches covered.">                    if (saturationTimestamp &gt;= oneMinuteBack &amp;&amp; saturationTimestamp &lt;= oneMinuteForward) {</span>
+<span class="fc" id="L312">                        double saturationValue = saturation.getMeasurementValue();</span>
+
+<span class="fc bfc" id="L314" title="All 2 branches covered.">                        if (saturationValue &lt; 92) {</span>
+<span class="fc" id="L315">                            Alert alert = new Alert(</span>
+<span class="fc" id="L316">                                    patientId,</span>
+<span class="fc" id="L317">                                    &quot;CRITICAL: Hypotensive Hypoxemia Detected (BP: &quot; +</span>
+<span class="fc" id="L318">                                            String.format(&quot;%.1f&quot;, systolicPressureValue) + &quot; mmHg, O2 Sat: &quot; +</span>
+<span class="fc" id="L319">                                            String.format(&quot;%.1f&quot;, saturationValue) + &quot;%)&quot;,</span>
+<span class="fc" id="L320">                                    System.currentTimeMillis()</span>
+                            );
+<span class="fc" id="L322">                            triggerAlert(alert);</span>
+<span class="fc" id="L323">                            return; // Exit after finding the first occurrence</span>
+                        }
+                    }
+                }
+            }
+        }
+<span class="fc" id="L329">    }</span>
+
+    /**
+     * Analyzes ECG readings to detect abnormal heart electrical activity.
+     * This method uses statistical analysis to identify readings that deviate
+     * significantly from the patient's recent baseline, which could indicate
+     * arrhythmias, conduction disorders, or other cardiac issues.
+     *
+     * @param patient the patient to check for ECG abnormalities
+     */
+    private void checkECGAbnormalities(Patient patient) {
+<span class="fc" id="L340">        List&lt;PatientRecord&gt; ecgRecords = getFilteredRecords(patient, &quot;ECG&quot;);</span>
+
+<span class="fc bfc" id="L342" title="All 2 branches covered.">        if (ecgRecords.size() &lt; 20) {</span>
+<span class="fc" id="L343">            return;</span>
+        }
+
+        // Get the latest record
+<span class="fc" id="L347">        PatientRecord latestRecord = ecgRecords.get(ecgRecords.size() - 1);</span>
+<span class="fc" id="L348">        String patientId = String.valueOf(latestRecord.getPatientId());</span>
+
+        // Calculate the mean and standard deviation of recent values
+<span class="fc" id="L351">        List&lt;Double&gt; recentValues = ecgRecords.stream()</span>
+<span class="fc" id="L352">                .skip(Math.max(0, ecgRecords.size() - 600)) // Use more data if available</span>
+<span class="fc" id="L353">                .map(PatientRecord::getMeasurementValue)</span>
+<span class="fc" id="L354">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L356">        double mean = recentValues.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);</span>
+<span class="fc" id="L357">        double stdDev = Math.sqrt(recentValues.stream()</span>
+<span class="fc" id="L358">                .mapToDouble(val -&gt; Math.pow(val - mean, 2))</span>
+<span class="fc" id="L359">                .average().orElse(0.0));</span>
+
+        // Define upper and lower bounds (3 standard deviations)
+<span class="fc" id="L362">        double upperBound = mean + 3 * stdDev;</span>
+<span class="fc" id="L363">        double lowerBound = mean - 3 * stdDev;</span>
+
+<span class="fc" id="L365">        System.out.println(&quot;DEBUG - Patient &quot; + patientId + &quot; has &quot; + ecgRecords.size() + &quot; ECG records&quot;);</span>
+<span class="fc" id="L366">        System.out.println(&quot;DEBUG - ECG stats: Mean=&quot; + mean + &quot;, StdDev=&quot; + stdDev);</span>
+<span class="fc" id="L367">        System.out.println(&quot;DEBUG - Bounds: [&quot; + lowerBound + &quot;, &quot; + upperBound + &quot;]&quot;);</span>
+
+        // Check for abnormal patterns in the last few readings
+<span class="fc" id="L370">        int abnormalCount = 0;</span>
+<span class="fc" id="L371">        boolean hasRapidChange = false;</span>
+
+        // Look at last 5 readings for debugging
+<span class="fc" id="L374">        System.out.println(&quot;DEBUG - Last 5 ECG values:&quot;);</span>
+<span class="fc" id="L375">        List&lt;Double&gt; last5Values = recentValues.subList(Math.max(0, recentValues.size() - 5), recentValues.size());</span>
+
+        // Look at more readings for analysis
+<span class="fc" id="L378">        List&lt;Double&gt; lastReadings = recentValues.subList(Math.max(0, recentValues.size() - 10), recentValues.size());</span>
+<span class="fc" id="L379">        double prevValue = lastReadings.get(0);</span>
+
+<span class="fc bfc" id="L381" title="All 2 branches covered.">        for (int i = 0; i &lt; lastReadings.size(); i++) {</span>
+<span class="fc" id="L382">            double currentValue = lastReadings.get(i);</span>
+
+            // For debugging the last 5
+<span class="fc bfc" id="L385" title="All 2 branches covered.">            if (i &gt;= lastReadings.size() - 5) {</span>
+<span class="fc" id="L386">                System.out.println(&quot;DEBUG - &quot; + String.format(&quot;%.3f&quot;, currentValue) +</span>
+<span class="fc bfc" id="L387" title="All 4 branches covered.">                        (currentValue &gt; upperBound || currentValue &lt; lowerBound ? &quot; OUT OF RANGE&quot; : &quot; in range&quot;));</span>
+            }
+
+            // Check for values outside statistical bounds
+<span class="fc bfc" id="L391" title="All 4 branches covered.">            if (currentValue &gt; upperBound || currentValue &lt; lowerBound) {</span>
+<span class="fc" id="L392">                abnormalCount++;</span>
+            }
+
+            // Check for rapid changes between consecutive readings
+<span class="fc bfc" id="L396" title="All 2 branches covered.">            if (i &gt; 0) {</span>
+<span class="fc" id="L397">                double change = Math.abs(currentValue - prevValue);</span>
+<span class="fc" id="L398">                double absoluteThreshold = 0.05; // Minimum absolute change to consider</span>
+<span class="fc" id="L399">                double relativeThreshold = 2.5 * stdDev; // Relative to data variability</span>
+
+<span class="fc bfc" id="L401" title="All 2 branches covered.">                if (change &gt; Math.max(absoluteThreshold, relativeThreshold)) {</span>
+<span class="fc" id="L402">                    hasRapidChange = true;</span>
+                }
+            }
+
+<span class="fc" id="L406">            prevValue = currentValue;</span>
+        }
+
+        // Check for both statistical outliers and pattern-based abnormalities
+<span class="fc" id="L410">        boolean abnormalPattern = checkForAbnormalPattern(lastReadings, mean, stdDev);</span>
+
+        // Trigger alert if multiple abnormal readings or rapid changes or pattern detected
+<span class="fc bfc" id="L413" title="All 2 branches covered.">        if ((abnormalCount &gt;= 3) ||</span>
+<span class="fc bfc" id="L414" title="All 4 branches covered.">                (hasRapidChange &amp;&amp; abnormalCount &gt;= 1) ||</span>
+<span class="pc bpc" id="L415" title="1 of 4 branches missed.">                (abnormalPattern &amp;&amp; abnormalCount &gt;= 1))</span>
+        {
+<span class="fc" id="L417">            Alert alert = new Alert(</span>
+<span class="fc" id="L418">                    patientId,</span>
+<span class="fc" id="L419">                    &quot;ECG Abnormality: &quot; +</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">                            (abnormalCount &gt;= 2 ? abnormalCount + &quot; readings outside expected range&quot; :</span>
+<span class="pc bpc" id="L421" title="1 of 2 branches missed.">                                    hasRapidChange ? &quot;Rapid fluctuations detected&quot; : &quot;Abnormal pattern detected&quot;),</span>
+<span class="fc" id="L422">                    System.currentTimeMillis()</span>
+            );
+<span class="fc" id="L424">            triggerAlert(alert);</span>
+        }
+<span class="fc" id="L426">    }</span>
+
+    /**
+     * Checks for specific abnormal patterns in ECG data
+     * This is a simplified implementation that looks for certain sequences
+     * that might indicate arrhythmias or other cardiac issues
+     */
+    private boolean checkForAbnormalPattern(List&lt;Double&gt; readings, double mean, double stdDev) {
+        // Check for alternating high-low pattern (potential indicator of certain arrhythmias)
+<span class="fc" id="L435">        boolean alternatingPattern = true;</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">        boolean highToLow = readings.get(0) &gt; readings.get(1);</span>
+
+<span class="fc bfc" id="L438" title="All 2 branches covered.">        for (int i = 1; i &lt; readings.size() - 1; i++) {</span>
+<span class="fc bfc" id="L439" title="All 2 branches covered.">            boolean currentHighToLow = readings.get(i) &gt; readings.get(i + 1);</span>
+<span class="fc bfc" id="L440" title="All 2 branches covered.">            if (currentHighToLow == highToLow) {</span>
+<span class="fc" id="L441">                alternatingPattern = false;</span>
+<span class="fc" id="L442">                break;</span>
+            }
+<span class="fc" id="L444">            highToLow = currentHighToLow;</span>
+        }
+
+        // Check for flatline pattern (multiple consecutive values very close to each other)
+<span class="fc" id="L448">        boolean flatlinePattern = true;</span>
+<span class="fc" id="L449">        double threshold = stdDev * 0.2; // Very small variation threshold</span>
+
+<span class="fc bfc" id="L451" title="All 2 branches covered.">        for (int i = 0; i &lt; readings.size() - 1; i++) {</span>
+<span class="fc bfc" id="L452" title="All 2 branches covered.">            if (Math.abs(readings.get(i) - readings.get(i + 1)) &gt; threshold) {</span>
+<span class="fc" id="L453">                flatlinePattern = false;</span>
+<span class="fc" id="L454">                break;</span>
+            }
+        }
+
+        // Check for consistent trend in one direction
+<span class="fc" id="L459">        boolean consistentTrend = true;</span>
+<span class="fc bfc" id="L460" title="All 2 branches covered.">        boolean increasing = readings.get(0) &lt; readings.get(1);</span>
+
+<span class="fc bfc" id="L462" title="All 2 branches covered.">        for (int i = 1; i &lt; readings.size() - 1; i++) {</span>
+<span class="fc bfc" id="L463" title="All 2 branches covered.">            boolean currentIncreasing = readings.get(i) &lt; readings.get(i + 1);</span>
+<span class="fc bfc" id="L464" title="All 2 branches covered.">            if (currentIncreasing != increasing) {</span>
+<span class="fc" id="L465">                consistentTrend = false;</span>
+<span class="fc" id="L466">                break;</span>
+            }
+        }
+
+<span class="fc bfc" id="L470" title="All 6 branches covered.">        return alternatingPattern || flatlinePattern || consistentTrend;</span>
+    }
+
+
+//    public void generate(int patientId, OutputStrategy outputStrategy) {
+//        try {
+//            if (alertStates[patientId]) {
+//                if (randomGenerator.nextDouble() &lt; RESOLUTION_PROBABILITY) {
+//                    alertStates[patientId] = false;
+//                    // Output the alert
+//                    outputStrategy.output(patientId, System.currentTimeMillis(), &quot;Alert&quot;, &quot;0&quot;); // for resolved
+//                }
+//            } else {
+//                double p = -Math.expm1(-ALERT_RATE_LAMBDA);
+//                boolean alertTriggered = randomGenerator.nextDouble() &lt; p;
+//
+//                if (alertTriggered) {
+//                    alertStates[patientId] = true;
+//                    // Output the alert
+//                    outputStrategy.output(patientId, System.currentTimeMillis(), &quot;Alert&quot;, &quot;1&quot;); // for triggered
+//                }
+//            }
+//        } catch (Exception e) {
+//            System.err.println(&quot;An error occurred while generating alert data for patient &quot; + patientId);
+//            e.printStackTrace();
+//        }
+//    }
+
+    /**
+     * Monitors for manually triggered alerts from patients or staff.
+     * These alerts are directly generated when a patient or staff member
+     * presses a call button, indicating a need for assistance that may not
+     * be captured by vital sign monitoring.
+     *
+     * @param patient the patient to check for triggered alerts
+     */
+    private void checkTriggeredAlert(Patient patient) {
+        // Get all alert records
+<span class="fc" id="L508">        List&lt;PatientRecord&gt; alertRecords = getFilteredRecords(patient, &quot;Alert&quot;);</span>
+
+<span class="fc bfc" id="L510" title="All 2 branches covered.">        if (alertRecords.isEmpty()) {</span>
+<span class="fc" id="L511">            return;</span>
+        }
+
+        // Check the most recent alert record
+<span class="fc" id="L515">        PatientRecord latestAlert = alertRecords.get(alertRecords.size() - 1);</span>
+<span class="fc" id="L516">        double alertValue = latestAlert.getMeasurementValue();</span>
+<span class="fc" id="L517">        String patientId = String.valueOf(latestAlert.getPatientId());</span>
+
+        // Only pass through &quot;triggered&quot; alerts, ignore &quot;resolved&quot; ones
+<span class="pc bpc" id="L520" title="1 of 2 branches missed.">        if (alertValue == 1.0) { // 1.0 represents &quot;triggered&quot;</span>
+<span class="fc" id="L521">            Alert alert = new Alert(</span>
+<span class="fc" id="L522">                patientId,</span>
+<span class="fc" id="L523">                &quot;Call Button Alert: Patient or Staff Requires Assistance&quot;,</span>
+<span class="fc" id="L524">                latestAlert.getTimestamp()</span>
+            );
+<span class="fc" id="L526">            triggerAlert(alert);</span>
+        }
+<span class="fc" id="L528">    }</span>
+
+
+        /**
+         * Triggers an alert for the monitoring system. This method can be extended to
+         * notify medical staff, log the alert, or perform other actions. The method
+         * currently assumes that the alert information is fully formed when passed as
+         * an argument.
+         *
+         * @param alert the alert object containing details about the alert condition
+         */
+        protected void triggerAlert (Alert alert){
+            // Implementation might involve logging the alert or notifying staff
+<span class="nc" id="L541">            System.out.println(&quot;ALERT: &quot; + alert.getCondition() +</span>
+<span class="nc" id="L542">                    &quot; for Patient ID: &quot; + alert.getPatientId() +</span>
+<span class="nc" id="L543">                    &quot; at &quot; + new java.util.Date(alert.getTimestamp()));</span>
+<span class="nc" id="L544">        }</span>
+
+    }
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
