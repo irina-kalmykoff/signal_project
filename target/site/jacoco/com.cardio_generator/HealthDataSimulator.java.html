@@ -191,7 +191,7 @@ import java.util.ArrayList;
 <span class="pc" id="L191">            scheduleTask(() -&gt; ecgDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);</span>
 <span class="fc" id="L192">            scheduleTask(() -&gt; bloodSaturationDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);</span>
 <span class="fc" id="L193">            scheduleTask(() -&gt; bloodPressureDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.MINUTES);</span>
-<span class="pc" id="L194">            scheduleTask(() -&gt; bloodLevelsDataGenerator.generate(patientId, outputStrategy), 2, TimeUnit.MINUTES);</span>
+<span class="fc" id="L194">            scheduleTask(() -&gt; bloodLevelsDataGenerator.generate(patientId, outputStrategy), 2, TimeUnit.MINUTES);</span>
 <span class="fc" id="L195">            scheduleTask(() -&gt; alertGenerator.generate(patientId, outputStrategy), 20, TimeUnit.SECONDS);</span>
         }
 <span class="fc" id="L197">    }</span>

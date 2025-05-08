@@ -384,7 +384,7 @@ public class AlertGenerator {
             // For debugging the last 5
 <span class="fc bfc" id="L385" title="All 2 branches covered.">            if (i &gt;= lastReadings.size() - 5) {</span>
 <span class="fc" id="L386">                System.out.println(&quot;DEBUG - &quot; + String.format(&quot;%.3f&quot;, currentValue) +</span>
-<span class="pc bpc" id="L387" title="1 of 4 branches missed.">                        (currentValue &gt; upperBound || currentValue &lt; lowerBound ? &quot; OUT OF RANGE&quot; : &quot; in range&quot;));</span>
+<span class="fc bfc" id="L387" title="All 4 branches covered.">                        (currentValue &gt; upperBound || currentValue &lt; lowerBound ? &quot; OUT OF RANGE&quot; : &quot; in range&quot;));</span>
             }
 
             // Check for values outside statistical bounds
