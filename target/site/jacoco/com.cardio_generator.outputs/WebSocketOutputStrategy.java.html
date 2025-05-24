@@ -17,43 +17,79 @@ public class WebSocketOutputStrategy implements OutputStrategy {
 
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
-<span class="fc" id="L20">        String message = String.format(&quot;%d,%d,%s,%s&quot;, patientId, timestamp, label, data);</span>
+        // Enhanced data validation to ensure all necessary patient information is present
+<span class="pc bpc" id="L21" title="1 of 2 branches missed.">        if (patientId &lt; 0) {</span>
+<span class="nc" id="L22">            System.err.println(&quot;Invalid patient ID (negative value): &quot; + patientId + &quot; - skipping send&quot;);</span>
+<span class="nc" id="L23">            return;</span>
+        }
+        
+<span class="pc bpc" id="L26" title="1 of 2 branches missed.">        if (timestamp &lt; 0) {</span>
+<span class="nc" id="L27">            System.err.println(&quot;Invalid timestamp (negative value): &quot; + timestamp + &quot; - skipping send&quot;);</span>
+<span class="nc" id="L28">            return;</span>
+        }
+        
+<span class="pc bpc" id="L31" title="2 of 4 branches missed.">        if (label == null || label.trim().isEmpty()) {</span>
+<span class="nc" id="L32">            System.err.println(&quot;Invalid label (null or empty): &quot; + label + &quot; - skipping send&quot;);</span>
+<span class="nc" id="L33">            return;</span>
+        }
+        
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L37">            System.err.println(&quot;Invalid data (null): &quot; + data + &quot; - skipping send&quot;);</span>
+<span class="nc" id="L38">            return;</span>
+        }
+        
+        // Format the data correctly for WebSocket transmission
+        // Format: patientId,timestamp,recordType,value
+<span class="fc" id="L43">        String message = String.format(&quot;%d,%d,%s,%s&quot;, patientId, timestamp, label, data);</span>
+        
         // Broadcast the message to all connected clients
-<span class="fc bfc" id="L22" title="All 2 branches covered.">        for (WebSocket conn : server.getConnections()) {</span>
-<span class="fc" id="L23">            conn.send(message);</span>
-<span class="fc" id="L24">        }</span>
-<span class="fc" id="L25">    }</span>
+<span class="fc" id="L46">        int clientCount = 0;</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        for (WebSocket conn : server.getConnections()) {</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">            if (conn.isOpen()) {</span>
+                try {
+<span class="fc" id="L50">                    conn.send(message);</span>
+<span class="fc" id="L51">                    clientCount++;</span>
+<span class="nc" id="L52">                } catch (Exception e) {</span>
+<span class="nc" id="L53">                    System.err.println(&quot;Error sending message to client: &quot; + e.getMessage());</span>
+<span class="fc" id="L54">                }</span>
+            }
+<span class="fc" id="L56">        }</span>
+        
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (clientCount == 0) {</span>
+<span class="fc" id="L59">            System.out.println(&quot;No connected clients to receive message: &quot; + message);</span>
+        }
+<span class="fc" id="L61">    }</span>
 
     private static class SimpleWebSocketServer extends WebSocketServer {
 
         public SimpleWebSocketServer(InetSocketAddress address) {
-<span class="fc" id="L30">            super(address);</span>
-<span class="fc" id="L31">        }</span>
+<span class="fc" id="L66">            super(address);</span>
+<span class="fc" id="L67">        }</span>
 
         @Override
         public void onOpen(WebSocket conn, org.java_websocket.handshake.ClientHandshake handshake) {
-<span class="nc" id="L35">            System.out.println(&quot;New connection: &quot; + conn.getRemoteSocketAddress());</span>
-<span class="nc" id="L36">        }</span>
+<span class="nc" id="L71">            System.out.println(&quot;New connection: &quot; + conn.getRemoteSocketAddress());</span>
+<span class="nc" id="L72">        }</span>
 
         @Override
         public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-<span class="nc" id="L40">            System.out.println(&quot;Closed connection: &quot; + conn.getRemoteSocketAddress());</span>
-<span class="nc" id="L41">        }</span>
+<span class="nc" id="L76">            System.out.println(&quot;Closed connection: &quot; + conn.getRemoteSocketAddress());</span>
+<span class="nc" id="L77">        }</span>
 
         @Override
         public void onMessage(WebSocket conn, String message) {
             // Not used in this context
-<span class="nc" id="L46">        }</span>
+<span class="nc" id="L82">        }</span>
 
         @Override
         public void onError(WebSocket conn, Exception ex) {
-<span class="nc" id="L50">            ex.printStackTrace();</span>
-<span class="nc" id="L51">        }</span>
+<span class="fc" id="L86">            ex.printStackTrace();</span>
+<span class="fc" id="L87">        }</span>
 
         @Override
         public void onStart() {
-<span class="fc" id="L55">            System.out.println(&quot;Server started successfully&quot;);</span>
-<span class="fc" id="L56">        }</span>
+<span class="fc" id="L91">            System.out.println(&quot;Server started successfully&quot;);</span>
+<span class="fc" id="L92">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

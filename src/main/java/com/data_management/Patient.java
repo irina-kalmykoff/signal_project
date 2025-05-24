@@ -64,4 +64,13 @@ public class Patient {
 
         return filteredRecords;
     }
+
+    /**
+     * Returns the patient ID of this patient.
+     * 
+     * @return the patient ID
+     */
+    public int getPatientId() {
+        return patientId;
+    }
 }

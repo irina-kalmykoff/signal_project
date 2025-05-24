@@ -208,41 +208,39 @@ public class WebSocketDataReader implements ContinuousDataReader {
          */
         private void handleNumericMessage(int patientId, long timestamp, String recordType, String valueStr) {
             try {
-                double value = Double.parseDouble(valueStr);
+                // Clean the value string to handle percentages and other formats
+                String cleanValue = cleanNumericValue(valueStr);
+                double value = Double.parseDouble(cleanValue);
                 dataStorage.addPatientData(patientId, value, recordType, timestamp);
-                /*
-                // Basic range validation for common health metrics
-                if (isValidHealthMetric(recordType, value)) {
-                    dataStorage.addPatientData(patientId, value, recordType, timestamp);
-                } else {
-                    System.err.println("Health metric value out of expected range for " + recordType + ": " + value);
-                    // Still store the data but log the warning
-                    dataStorage.addPatientData(patientId, value, recordType, timestamp);
-                }*/
+                
+                // Optional: Debug output to see what's happening
+                System.out.println(String.format("Parsed %s for patient %d: %s -> %.2f", 
+                                            recordType, patientId, valueStr, value));
             } catch (NumberFormatException e) {
-                System.err.println("Non-numeric value for record type " + recordType + ": " + valueStr);
+                System.err.println("Failed to parse " + recordType + " value: '" + valueStr + "' - " + e.getMessage());
             }
         }
-        
+
         /**
-         * Basic validation for common health metrics to detect potentially corrupted data.
+         * Cleans numeric values by removing common non-numeric suffixes
          */
-        /*private boolean isValidHealthMetric(String recordType, double value) {
-            switch (recordType) {
-                case "SystolicPressure":
-                    return value >= 50 && value <= 300;
-                case "DiastolicPressure":
-                    return value >= 30 && value <= 200;
-                case "Saturation":
-                    return value >= 70 && value <= 100;
-                case "ECG":
-                    return value >= -5 && value <= 5;
-                case "HeartRate":
-                    return value >= 30 && value <= 300;
-                default:
-                    return true; // Unknown types are accepted without validation
+        private String cleanNumericValue(String valueStr) {
+            if (valueStr == null || valueStr.trim().isEmpty()) {
+                return "0";
             }
-        }*/
+            
+            // Remove common suffixes and trim whitespace
+            String cleaned = valueStr.trim()
+                                    .replace("%", "")      // Remove percentage
+                                    .replace("mmHg", "")   // Remove blood pressure unit
+                                    .replace("BPM", "")    // Remove heart rate unit
+                                    .replace("bpm", "")    // Remove heart rate unit (lowercase)
+                                    .replace("°C", "")     // Remove temperature unit
+                                    .replace("°F", "");    // Remove temperature unit
+            
+            // Handle empty string after cleaning
+            return cleaned.trim().isEmpty() ? "0" : cleaned.trim();
+        }
 
         @Override
         public void onClose(int code, String reason, boolean remote) {

@@ -70,8 +70,9 @@ public class WebSocketOutputStrategyTests {
             Set<WebSocket> connections = new HashSet<>();
             connections.add(mockConnection);
 
-            // Set up mock behavior
+            // Set up mock behavior - IMPORTANT: Mock isOpen() to return true
             Mockito.when(mockServer.getConnections()).thenReturn(connections);
+            Mockito.when(mockConnection.isOpen()).thenReturn(true);
 
             // Replace the server
             serverField.set(strategy, mockServer);
@@ -109,8 +110,9 @@ public class WebSocketOutputStrategyTests {
             Set<WebSocket> connections = new HashSet<>();
             connections.add(mockConnection);
 
-            // Set up mock behavior
+            // Set up mock behavior - IMPORTANT: Mock isOpen() to return true
             Mockito.when(mockServer.getConnections()).thenReturn(connections);
+            Mockito.when(mockConnection.isOpen()).thenReturn(true);
 
             // Replace the server
             serverField.set(strategy, mockServer);
@@ -154,8 +156,10 @@ public class WebSocketOutputStrategyTests {
             connections.add(mockConnection1);
             connections.add(mockConnection2);
 
-            // Set up mock behavior
+            // Set up mock behavior - IMPORTANT: Mock isOpen() to return true for both connections
             Mockito.when(mockServer.getConnections()).thenReturn(connections);
+            Mockito.when(mockConnection1.isOpen()).thenReturn(true);
+            Mockito.when(mockConnection2.isOpen()).thenReturn(true);
 
             // Replace the server
             serverField.set(strategy, mockServer);
