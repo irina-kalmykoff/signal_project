@@ -17,10 +17,46 @@ public class WebSocketOutputStrategy implements OutputStrategy {
 
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
+        // Enhanced data validation to ensure all necessary patient information is present
+        if (patientId < 0) {
+            System.err.println("Invalid patient ID (negative value): " + patientId + " - skipping send");
+            return;
+        }
+        
+        if (timestamp < 0) {
+            System.err.println("Invalid timestamp (negative value): " + timestamp + " - skipping send");
+            return;
+        }
+        
+        if (label == null || label.trim().isEmpty()) {
+            System.err.println("Invalid label (null or empty): " + label + " - skipping send");
+            return;
+        }
+        
+        if (data == null) {
+            System.err.println("Invalid data (null): " + data + " - skipping send");
+            return;
+        }
+        
+        // Format the data correctly for WebSocket transmission
+        // Format: patientId,timestamp,recordType,value
         String message = String.format("%d,%d,%s,%s", patientId, timestamp, label, data);
+        
         // Broadcast the message to all connected clients
+        int clientCount = 0;
         for (WebSocket conn : server.getConnections()) {
-            conn.send(message);
+            if (conn.isOpen()) {
+                try {
+                    conn.send(message);
+                    clientCount++;
+                } catch (Exception e) {
+                    System.err.println("Error sending message to client: " + e.getMessage());
+                }
+            }
+        }
+        
+        if (clientCount == 0) {
+            System.out.println("No connected clients to receive message: " + message);
         }
     }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileOutputStrategy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.cardio_generator.outputs</a> &gt; <span class="el_source">FileOutputStrategy.java</span></div><h1>FileOutputStrategy.java</h1><pre class="source lang-java linenums">package com.cardio_generator.outputs;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="nl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileOutputStrategy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.cardio_generator.outputs</a> &gt; <span class="el_source">FileOutputStrategy.java</span></div><h1>FileOutputStrategy.java</h1><pre class="source lang-java linenums">package com.cardio_generator.outputs;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -7,36 +7,89 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Implements the OutputStrategy interface to write patient data to files.
+ * &lt;p&gt;
+ * This strategy organizes output by creating separate files for each data type (label)
+ * within a specified base directory. All patient data for a particular type is appended
+ * to the corresponding file.
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * For thread safety and performance, this implementation:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Uses ConcurrentHashMap to cache file paths&lt;/li&gt;
+ *   &lt;li&gt;Creates the base directory structure if it doesn't exist&lt;/li&gt;
+ *   &lt;li&gt;Appends data to existing files rather than overwriting&lt;/li&gt;
+ * &lt;/ul&gt;
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * Each line in the output files follows the format:
+ * {@code Patient ID: [id], Timestamp: [timestamp], Label: [label], Data: [data]}
+ * &lt;/p&gt;
+ */
 public class FileOutputStrategy implements OutputStrategy { //Class name not matching the file name
 
-    private String BaseDirectory;
+    // The base directory where output files will be created
+    private String baseDirectory; // Change variable name to camelCase (was intially BaseDirectory)
 
-<span class="fc" id="L14">    public final ConcurrentHashMap&lt;String, String&gt; file_map = new ConcurrentHashMap&lt;&gt;();</span>
+    /** 
+     * Thread-safe mapping of data labels to their corresponding file paths.
+     * Used to cache file paths and avoid recalculating them for each output operation.
+    */
+<span class="fc" id="L39">    public final ConcurrentHashMap&lt;String, String&gt; file_map = new ConcurrentHashMap&lt;&gt;();</span>
 
-<span class="fc" id="L16">    public FileOutputStrategy(String baseDirectory) { // Adjust to match the updated class name</span>
+    /**
+     * Creates a new FileOutputStrategy that will write files to the specified directory.
+     * 
+     * @param baseDirectory The directory where output files should be created
+    */
+<span class="fc" id="L46">    public FileOutputStrategy(String baseDirectory) { // Adjust to match the updated class name</span>
 
-<span class="fc" id="L18">        this.BaseDirectory = baseDirectory;</span>
-<span class="fc" id="L19">    }</span>
+<span class="fc" id="L48">        this.baseDirectory = baseDirectory; // BaseDirectory is changed into baseDirectory to give the variable a name in camelCase.</span>
+<span class="fc" id="L49">    }</span>
 
+    /**
+     * Writes patient data to a file specific to the data label.
+     * &lt;p&gt;
+     * This method:
+     * &lt;ol&gt;
+     *   &lt;li&gt;Ensures the base directory exists, creating it if necessary&lt;/li&gt;
+     *   &lt;li&gt;Determines the appropriate file path for the data label, caching it for future use&lt;/li&gt;
+     *   &lt;li&gt;Appends the formatted data to the file&lt;/li&gt;
+     * &lt;/ol&gt;
+     * &lt;/p&gt;
+     * &lt;p&gt;
+     * All output for a specific label (e.g., &quot;ECG&quot;, &quot;BloodPressure&quot;) is written to its own file
+     * named &quot;[label].txt&quot; within the base directory.
+     * &lt;/p&gt;
+     *
+     * @param patientId The ID of the patient the data belongs to
+     * @param timestamp The time the data was recorded (milliseconds since epoch)
+     * @param label The type of data being recorded (e.g., &quot;ECG&quot;, &quot;BloodPressure&quot;)
+     * @param data The value of the recorded data
+    */
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
+        
+<span class="fc" id="L74">        boolean directoryCreated = true;</span>
+
         try {
             // Create the directory
-<span class="fc" id="L25">            Files.createDirectories(Paths.get(BaseDirectory));</span>
-<span class="pc" id="L26">        } catch (IOException e) {</span>
-<span class="nc" id="L27">            System.err.println(&quot;Error creating base directory: &quot; + e.getMessage());</span>
-<span class="nc" id="L28">            return;</span>
-        }
+<span class="fc" id="L78">            Files.createDirectories(Paths.get(baseDirectory));</span>
+<span class="fc" id="L79">        } catch (IOException e) {</span>
+<span class="fc" id="L80">            System.err.println(&quot;Error creating base directory: &quot; + e.getMessage());</span>
+<span class="fc" id="L81">            directoryCreated = false;</span>
+<span class="fc" id="L82">        }</span>
         // Set the FilePath variable
-<span class="fc" id="L31">        String FilePath = file_map.computeIfAbsent(label, k -&gt; Paths.get(BaseDirectory, label + &quot;.txt&quot;).toString());</span>
+<span class="fc" id="L84">        String FilePath = file_map.computeIfAbsent(label, k -&gt; Paths.get(baseDirectory, label + &quot;.txt&quot;).toString());</span>
 
         // Write the data to the file
-<span class="fc" id="L34">        try (PrintWriter out = new PrintWriter(</span>
-<span class="fc" id="L35">                Files.newBufferedWriter(Paths.get(FilePath), StandardOpenOption.CREATE, StandardOpenOption.APPEND))) {</span>
-<span class="fc" id="L36">            out.printf(&quot;Patient ID: %d, Timestamp: %d, Label: %s, Data: %s%n&quot;, patientId, timestamp, label, data);</span>
-<span class="nc" id="L37">        } catch (Exception e) {</span>
-<span class="nc" id="L38">            System.err.println(&quot;Error writing to file &quot; + FilePath + &quot;: &quot; + e.getMessage());</span>
-        }
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L87">        try (PrintWriter out = new PrintWriter(</span>
+<span class="fc" id="L88">                Files.newBufferedWriter(Paths.get(FilePath), StandardOpenOption.CREATE, StandardOpenOption.APPEND))) {</span>
+<span class="fc" id="L89">            out.printf(&quot;Patient ID: %d, Timestamp: %d, Label: %s, Data: %s%n&quot;, patientId, timestamp, label, data);</span>
+<span class="fc" id="L90">        } catch (Exception e) {</span>
+<span class="fc" id="L91">            System.err.println(&quot;Error writing to file &quot; + FilePath + &quot;: &quot; + e.getMessage());</span>
+<span class="fc" id="L92">        }</span>
+<span class="fc" id="L93">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

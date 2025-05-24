@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AlertGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.alerts</a> &gt; <span class="el_source">AlertGenerator.java</span></div><h1>AlertGenerator.java</h1><pre class="source lang-java linenums">package com.alerts;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="nl"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AlertGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardio_generator</a> &gt; <a href="index.source.html" class="el_package">com.alerts</a> &gt; <span class="el_source">AlertGenerator.java</span></div><h1>AlertGenerator.java</h1><pre class="source lang-java linenums">package com.alerts;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.cardio_generator.outputs.OutputStrategy;
@@ -146,7 +146,7 @@ public class AlertGenerator {
 
 <span class="fc" id="L147">                Alert alert = new Alert(</span>
 <span class="fc" id="L148">                        String.valueOf(patientId),</span>
-<span class="fc" id="L149">                        &quot;Increasing &quot; + pressureType + &quot; Blood Pressure Trend&quot;,</span>
+                        &quot;Increasing &quot; + pressureType + &quot; Blood Pressure Trend&quot;,
 <span class="fc" id="L150">                        System.currentTimeMillis()</span>
                 );
 <span class="fc" id="L152">                triggerAlert(alert);</span>
@@ -158,7 +158,7 @@ public class AlertGenerator {
 
 <span class="fc" id="L159">                Alert alert = new Alert(</span>
 <span class="fc" id="L160">                        String.valueOf(patientId),</span>
-<span class="fc" id="L161">                        &quot;Decreasing &quot; + pressureType + &quot; Blood Pressure Trend&quot;,</span>
+                        &quot;Decreasing &quot; + pressureType + &quot; Blood Pressure Trend&quot;,
 <span class="fc" id="L162">                        System.currentTimeMillis()</span>
                 );
 <span class="fc" id="L164">                triggerAlert(alert);</span>
@@ -189,8 +189,8 @@ public class AlertGenerator {
 
 <span class="fc bfc" id="L190" title="All 2 branches covered.">            if (isThresholdViolated) {</span>
 <span class="fc" id="L191">                Alert alert = new Alert(</span>
-<span class="fc" id="L192">                        patientId,</span>
-<span class="fc" id="L193">                        alertMessage + &quot; (&quot; + value + &quot; mmHg)&quot;,</span>
+                        patientId,
+                        alertMessage + &quot; (&quot; + value + &quot; mmHg)&quot;,
 <span class="fc" id="L194">                        System.currentTimeMillis()</span>
                 );
 <span class="fc" id="L196">                triggerAlert(alert);</span>
@@ -228,8 +228,8 @@ public class AlertGenerator {
             }
 <span class="fc bfc" id="L229" title="All 2 branches covered.">            if (isThresholdViolated) {</span>
 <span class="fc" id="L230">                Alert alert = new Alert(</span>
-<span class="fc" id="L231">                        patientId,</span>
-<span class="fc" id="L232">                        alertMessage + &quot; (&quot; + value + &quot;%)&quot;,</span>
+                        patientId,
+                        alertMessage + &quot; (&quot; + value + &quot;%)&quot;,
 <span class="fc" id="L233">                        System.currentTimeMillis()</span>
                 );
 <span class="fc" id="L235">                triggerAlert(alert);</span>
@@ -270,7 +270,7 @@ public class AlertGenerator {
 <span class="fc" id="L270">                String patientId = String.valueOf(latestRecord.getPatientId());</span>
 
 <span class="fc" id="L272">                Alert alert = new Alert(</span>
-<span class="fc" id="L273">                        patientId,</span>
+                        patientId,
 <span class="fc" id="L274">                        &quot;Rapid Oxygen Saturation Drop of &quot; + String.format(&quot;%.1f&quot;, dropPercentage) + &quot;% in 10 minutes&quot;,</span>
 <span class="fc" id="L275">                        System.currentTimeMillis()</span>
                 );
@@ -313,8 +313,8 @@ public class AlertGenerator {
 
 <span class="fc bfc" id="L314" title="All 2 branches covered.">                        if (saturationValue &lt; 92) {</span>
 <span class="fc" id="L315">                            Alert alert = new Alert(</span>
-<span class="fc" id="L316">                                    patientId,</span>
-<span class="fc" id="L317">                                    &quot;CRITICAL: Hypotensive Hypoxemia Detected (BP: &quot; +</span>
+                                    patientId,
+                                    &quot;CRITICAL: Hypotensive Hypoxemia Detected (BP: &quot; +
 <span class="fc" id="L318">                                            String.format(&quot;%.1f&quot;, systolicPressureValue) + &quot; mmHg, O2 Sat: &quot; +</span>
 <span class="fc" id="L319">                                            String.format(&quot;%.1f&quot;, saturationValue) + &quot;%)&quot;,</span>
 <span class="fc" id="L320">                                    System.currentTimeMillis()</span>
@@ -323,9 +323,9 @@ public class AlertGenerator {
 <span class="fc" id="L323">                            return; // Exit after finding the first occurrence</span>
                         }
                     }
-                }
+<span class="fc" id="L326">                }</span>
             }
-        }
+<span class="fc" id="L328">        }</span>
 <span class="fc" id="L329">    }</span>
 
     /**
@@ -384,11 +384,11 @@ public class AlertGenerator {
             // For debugging the last 5
 <span class="fc bfc" id="L385" title="All 2 branches covered.">            if (i &gt;= lastReadings.size() - 5) {</span>
 <span class="fc" id="L386">                System.out.println(&quot;DEBUG - &quot; + String.format(&quot;%.3f&quot;, currentValue) +</span>
-<span class="fc bfc" id="L387" title="All 4 branches covered.">                        (currentValue &gt; upperBound || currentValue &lt; lowerBound ? &quot; OUT OF RANGE&quot; : &quot; in range&quot;));</span>
+<span class="pc bpc" id="L387" title="1 of 4 branches missed.">                        (currentValue &gt; upperBound || currentValue &lt; lowerBound ? &quot; OUT OF RANGE&quot; : &quot; in range&quot;));</span>
             }
 
             // Check for values outside statistical bounds
-<span class="fc bfc" id="L391" title="All 4 branches covered.">            if (currentValue &gt; upperBound || currentValue &lt; lowerBound) {</span>
+<span class="pc bpc" id="L391" title="1 of 4 branches missed.">            if (currentValue &gt; upperBound || currentValue &lt; lowerBound) {</span>
 <span class="fc" id="L392">                abnormalCount++;</span>
             }
 
@@ -410,13 +410,13 @@ public class AlertGenerator {
 <span class="fc" id="L410">        boolean abnormalPattern = checkForAbnormalPattern(lastReadings, mean, stdDev);</span>
 
         // Trigger alert if multiple abnormal readings or rapid changes or pattern detected
-<span class="fc bfc" id="L413" title="All 2 branches covered.">        if ((abnormalCount &gt;= 3) ||</span>
-<span class="fc bfc" id="L414" title="All 4 branches covered.">                (hasRapidChange &amp;&amp; abnormalCount &gt;= 1) ||</span>
-<span class="pc bpc" id="L415" title="1 of 4 branches missed.">                (abnormalPattern &amp;&amp; abnormalCount &gt;= 1))</span>
+<span class="pc bpc" id="L413" title="3 of 10 branches missed.">        if ((abnormalCount &gt;= 3) ||</span>
+                (hasRapidChange &amp;&amp; abnormalCount &gt;= 1) ||
+                (abnormalPattern &amp;&amp; abnormalCount &gt;= 1))
         {
 <span class="fc" id="L417">            Alert alert = new Alert(</span>
-<span class="fc" id="L418">                    patientId,</span>
-<span class="fc" id="L419">                    &quot;ECG Abnormality: &quot; +</span>
+                    patientId,
+                    &quot;ECG Abnormality: &quot; +
 <span class="fc bfc" id="L420" title="All 2 branches covered.">                            (abnormalCount &gt;= 2 ? abnormalCount + &quot; readings outside expected range&quot; :</span>
 <span class="pc bpc" id="L421" title="1 of 2 branches missed.">                                    hasRapidChange ? &quot;Rapid fluctuations detected&quot; : &quot;Abnormal pattern detected&quot;),</span>
 <span class="fc" id="L422">                    System.currentTimeMillis()</span>
@@ -519,8 +519,8 @@ public class AlertGenerator {
         // Only pass through &quot;triggered&quot; alerts, ignore &quot;resolved&quot; ones
 <span class="pc bpc" id="L520" title="1 of 2 branches missed.">        if (alertValue == 1.0) { // 1.0 represents &quot;triggered&quot;</span>
 <span class="fc" id="L521">            Alert alert = new Alert(</span>
-<span class="fc" id="L522">                patientId,</span>
-<span class="fc" id="L523">                &quot;Call Button Alert: Patient or Staff Requires Assistance&quot;,</span>
+                patientId,
+                &quot;Call Button Alert: Patient or Staff Requires Assistance&quot;,
 <span class="fc" id="L524">                latestAlert.getTimestamp()</span>
             );
 <span class="fc" id="L526">            triggerAlert(alert);</span>
