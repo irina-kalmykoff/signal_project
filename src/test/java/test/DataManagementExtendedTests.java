@@ -2,16 +2,16 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-//import org.mockito.Mockito;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-//import java.util.ArrayList;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 
 import com.data_management.*;
 
@@ -28,7 +28,29 @@ public class DataManagementExtendedTests {
 
     @BeforeEach
     public void setUp() {
-        dataStorage = new DataStorage();
+        // Reset singleton before each test
+        resetDataStorage();
+        dataStorage = DataStorage.getInstance();
+    }
+    
+    @AfterEach
+    public void tearDown() {
+        // Reset singleton after each test
+        resetDataStorage();
+    }
+    
+    /**
+     * Reset DataStorage singleton between tests
+     */
+    private void resetDataStorage() {
+        try {
+            Field instance = DataStorage.class.getDeclaredField("instance");
+            instance.setAccessible(true);
+            instance.set(null, null);
+            System.out.println("DataStorage singleton reset successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to reset DataStorage singleton: " + e.getMessage());
+        }
     }
 
     @Test
@@ -201,8 +223,7 @@ public class DataManagementExtendedTests {
         FileDataReader reader = new FileDataReader(tempDir.toString());
 
         // Create data storage
-        DataStorage storage = new DataStorage();
-
+        DataStorage storage = DataStorage.getInstance();
         // Read data
         reader.readData(storage);
 
@@ -238,8 +259,7 @@ public class DataManagementExtendedTests {
         FileDataReader reader = new FileDataReader(tempDir.toString());
 
         // Create data storage
-        DataStorage storage = new DataStorage();
-
+        DataStorage storage = DataStorage.getInstance();
         // Read data - should not throw
         assertDoesNotThrow(() -> reader.readData(storage));
 
@@ -254,7 +274,7 @@ public class DataManagementExtendedTests {
         FileDataReader reader = new FileDataReader("/non/existent/directory");
 
         // Create data storage
-        DataStorage storage = new DataStorage();
+        DataStorage storage = DataStorage.getInstance();
 
         // Read data - should throw IOException
         assertThrows(IOException.class, () -> reader.readData(storage));

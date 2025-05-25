@@ -112,7 +112,7 @@ public class OutputStrategyTests {
         // Test output method (should handle the error gracefully)
         assertDoesNotThrow(() -> strategy.output(1, 1234567890, "HeartRate", "75"),
                           "Output method should handle nonexistent directory without throwing exception");
-        //
+        
         // It looks like the strategy is still adding to the file_map even if the directory doesn't exist
         // This test verifies that the code gracefully handles this scenario without throwing exceptions
         assertTrue(strategy.file_map.containsKey("HeartRate"),

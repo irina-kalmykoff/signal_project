@@ -45,6 +45,26 @@ public class HealthDataSimulator {
     private static ScheduledExecutorService scheduler;
     private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy
     private static final Random random = new Random();
+    private static HealthDataSimulator instance; // A private static variable to hold the single instance of the class
+
+
+    /**
+     * Gets the singleton instance of HealthDataSimulator.
+     * Creates a new instance if one doesn't exist yet.
+     * 
+     * @return The singleton instance of DataStorage
+     */
+    public static HealthDataSimulator getInstance() {
+        if (instance == null) {
+            synchronized (HealthDataSimulator.class) {
+                if (instance == null) {
+                    instance = new HealthDataSimulator();
+                }
+            }
+        }
+        return instance;
+    }
+
 
     /**
      * Main entry point for the health data simulation program.
@@ -55,14 +75,15 @@ public class HealthDataSimulator {
      */
     public static void main(String[] args) throws IOException {
 
+        HealthDataSimulator simulator = HealthDataSimulator.getInstance();
         parseArguments(args);
 
         scheduler = Executors.newScheduledThreadPool(patientCount * 4);
 
-        List<Integer> patientIds = initializePatientIds(patientCount);
+        List<Integer> patientIds = simulator.initializePatientIds(patientCount);
         Collections.shuffle(patientIds); // Randomize the order of patient IDs
 
-        scheduleTasksForPatients(patientIds);
+        simulator.scheduleTasksForPatients(patientIds);
     }
 
     /**

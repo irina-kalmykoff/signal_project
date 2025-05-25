@@ -70,15 +70,12 @@ public class FileOutputStrategy implements OutputStrategy { //Class name not mat
     */
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
-        
-        boolean directoryCreated = true;
-
         try {
             // Create the directory
             Files.createDirectories(Paths.get(baseDirectory));
         } catch (IOException e) {
             System.err.println("Error creating base directory: " + e.getMessage());
-            directoryCreated = false;
+            return;
         }
         // Set the FilePath variable
         String FilePath = file_map.computeIfAbsent(label, k -> Paths.get(baseDirectory, label + ".txt").toString());
