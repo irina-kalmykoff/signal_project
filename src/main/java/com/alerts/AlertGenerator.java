@@ -1,6 +1,6 @@
 package com.alerts;
 import java.util.*;
-import com.data_management.DataStorage;
+import com.data_management.*;
 
 
 /**
@@ -73,6 +73,34 @@ public class AlertGenerator {
 //        }
 //    }
 
-
+            /**
+         * Evaluates all data for a patient and triggers appropriate alerts.
+         * This method serves as the entry point for alert generation and uses
+         * the specialized alert factories to check various conditions.
+         *
+         * @param patient the patient whose data should be evaluated
+         */
+        public void evaluateData(Patient patient) {
+            if (patient == null) {
+                return;
+            }
+            
+            // Get the most recent timestamp (for simplicity, use current time)
+            long currentTime = System.currentTimeMillis();
+            String patientId = String.valueOf(patient.getPatientId());
+            
+            // Process through each factory to check their specific conditions
+            // For blood oxygen monitoring
+            bloodOxygenAlertFactory.createAlert(patientId, null, currentTime);
+            
+            // For blood pressure monitoring
+            bloodPressureAlertFactory.createAlert(patientId, null, currentTime);
+            
+            // For ECG monitoring
+            ecgAlertFactory.createAlert(patientId, null, currentTime);
+            
+            // For call button alerts
+            callButtonAlertFactory.createAlert(patientId, null, currentTime);
+        }
 
     }

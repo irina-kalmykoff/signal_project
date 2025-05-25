@@ -1,6 +1,6 @@
 package com.alerts;
 import com.data_management.DataStorage;
-//import com.decorator.*;
+import com.decorator.*;
 
 /**
  * DecoratedAlertFactory extends AlertFactory to produce decorated alerts.

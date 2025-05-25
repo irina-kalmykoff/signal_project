@@ -1,7 +1,6 @@
 package com.data_management;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,6 +8,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.atomic.AtomicLong;
 import com.alerts.AlertGenerator;
+
 
 /**
  * Manages storage and retrieval of patient data within a healthcare monitoring
@@ -329,4 +329,5 @@ public class DataStorage {
             alertGenerator.evaluateData(patient);
         }
     }
+ 
 }
