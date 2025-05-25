@@ -29,17 +29,34 @@ public class DataStorage {
     // Cache for frequently accessed patient records (last 1000 records per patient)
     private final Map<Integer, List<PatientRecord>> recentRecordsCache;
     private static final int CACHE_SIZE = 1000;
+	
+	private static DataStorage instance;        //a private static variable to hold the single instance of the class
 
     /**
      * Constructs a new instance of EnhancedDataStorage, initializing the underlying storage
      * structure with thread-safe collections for real-time data handling.
+	 * Gets the singleton instance of DataStorage.
+     * Creates a new instance if one doesn't exist yet.
+	 @return The singleton instance of DataStorage
     */
-    public DataStorage() {
+    private DataStorage() {
         this.patientMap = new ConcurrentHashMap<>();
         this.patientLocks = new ConcurrentHashMap<>();
         this.totalRecordsProcessed = new AtomicLong(0);
         this.recentRecordsCache = new ConcurrentHashMap<>();
     }
+	
+	// Thread-safe getInstance method
+	public static DataStorage getInstance() {
+		if (instance == null) {
+			synchronized (DataStorage.class) {
+				if (instance == null) {
+					instance = new DataStorage();
+				}
+			}
+		}
+		return instance;
+	}
 
     /**
      * Adds or updates patient data in the storage with thread-safe operations.
