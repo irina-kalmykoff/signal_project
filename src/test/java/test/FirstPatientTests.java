@@ -350,30 +350,30 @@ public class FirstPatientTests {
     public static void main(String[] args) {
         FirstPatientTests test = new FirstPatientTests();
         try {
-            System.out.println("Setting up test environment...");
+            // System.out.println("Setting up test environment...");
             test.setUp();
             
-            System.out.println("\nRunning normal patient test...");
+            // System.out.println("\nRunning normal patient test...");
             test.testNormalPatientNoAlerts();
             
-            System.out.println("\nRunning blood pressure threshold test...");
+            // System.out.println("\nRunning blood pressure threshold test...");
             test.testBloodPressureThresholds();
             
-            System.out.println("\nRunning increasing trend test...");
+            // System.out.println("\nRunning increasing trend test...");
             test.testIncreasingBloodPressureTrend();
             
-            System.out.println("\nRunning decreasing trend test...");
+            // System.out.println("\nRunning decreasing trend test...");
             test.testDecreasingBloodPressureTrend();
             
-            System.out.println("\nRunning ECG abnormality test...");
+            // System.out.println("\nRunning ECG abnormality test...");
             test.testECGAbnormality();
             
-            System.out.println("\nRunning hypotensive hypoxemia test...");
+            // System.out.println("\nRunning hypotensive hypoxemia test...");
             test.testHypotensiveHypoxemia();
             
-            System.out.println("\nAll tests completed. Check output for results.");
+            // System.out.println("\nAll tests completed. Check output for results.");
         } catch (Exception e) {
-            System.err.println("Error running tests: " + e.getMessage());
+            // System.err.println("Error running tests: " + e.getMessage());
             e.printStackTrace();
         }
     }

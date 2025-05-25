@@ -46,7 +46,7 @@ public class WebSocketIntegrationTest {
         System.out.println("Setting up WebSocket integration test...");
         
         // Initialize components
-        dataStorage = new DataStorage();
+        dataStorage = DataStorage.getInstance();
         
         // Find an available port and start server
         actualPort = findAvailablePortAndStartServer();
