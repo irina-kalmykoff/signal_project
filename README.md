@@ -67,6 +67,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Project Members
 
    ```sh
-   - Student ID: i6365269 (Irina)
-   - Student ID: i6374487 (Noortje)
+   - Student ID: i6365269 (Irina Kalmykova)
+   - Student ID: i6374487 (Noortje van Maldegem)
    ```
+
+## UML Models
+UML diagrams for 4 different subsystems are added to the root of the repository. You can find them by following this link: 
+https://github.com/irina-kalmykoff/signal_project/tree/master/uml_models
