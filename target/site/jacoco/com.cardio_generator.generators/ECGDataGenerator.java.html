@@ -7,7 +7,7 @@ import com.cardio_generator.outputs.OutputStrategy;
 public class ECGDataGenerator implements PatientDataGenerator {
 <span class="fc" id="L8">    private static final Random random = new Random();</span>
     private double[] lastEcgValues;
-<span class="fc" id="L10">    private static final double PI = Math.PI;</span>
+    private static final double PI = Math.PI;
 
 <span class="fc" id="L12">    public ECGDataGenerator(int patientCount) {</span>
 <span class="fc" id="L13">        lastEcgValues = new double[patientCount + 1];</span>
@@ -24,10 +24,10 @@ public class ECGDataGenerator implements PatientDataGenerator {
 <span class="fc" id="L24">            double ecgValue = simulateEcgWaveform(patientId, lastEcgValues[patientId]);</span>
 <span class="fc" id="L25">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;ECG&quot;, Double.toString(ecgValue));</span>
 <span class="fc" id="L26">            lastEcgValues[patientId] = ecgValue;</span>
-<span class="pc" id="L27">        } catch (Exception e) {</span>
+<span class="nc" id="L27">        } catch (Exception e) {</span>
 <span class="nc" id="L28">            System.err.println(&quot;An error occurred while generating ECG data for patient &quot; + patientId);</span>
 <span class="nc" id="L29">            e.printStackTrace(); // This will print the stack trace to help identify where the error occurred.</span>
-        }
+<span class="fc" id="L30">        }</span>
 <span class="fc" id="L31">    }</span>
 
     private double simulateEcgWaveform(int patientId, double lastEcgValue) {

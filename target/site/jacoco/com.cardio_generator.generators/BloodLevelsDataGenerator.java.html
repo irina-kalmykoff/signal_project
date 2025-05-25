@@ -37,10 +37,10 @@ public class BloodLevelsDataGenerator implements PatientDataGenerator {
 <span class="fc" id="L37">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;WhiteBloodCells&quot;,</span>
 <span class="fc" id="L38">                    Double.toString(whiteCells));</span>
 <span class="fc" id="L39">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;RedBloodCells&quot;, Double.toString(redCells));</span>
-<span class="pc" id="L40">        } catch (Exception e) {</span>
+<span class="nc" id="L40">        } catch (Exception e) {</span>
 <span class="nc" id="L41">            System.err.println(&quot;An error occurred while generating blood levels data for patient &quot; + patientId);</span>
 <span class="nc" id="L42">            e.printStackTrace(); // This will print the stack trace to help identify where the error occurred.</span>
-        }
+<span class="fc" id="L43">        }</span>
 <span class="fc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

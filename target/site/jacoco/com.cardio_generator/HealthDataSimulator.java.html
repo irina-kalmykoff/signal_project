@@ -41,11 +41,30 @@ import java.util.ArrayList;
  * &lt;/p&gt;
  */
 <span class="fc" id="L43">public class HealthDataSimulator {</span>
-
-<span class="fc" id="L45">    private static int patientCount = 50; // Default number of patients</span>
+<span class="fc" id="L44">    private static int patientCount = 50; // Default number of patients</span>
     private static ScheduledExecutorService scheduler;
-<span class="fc" id="L47">    private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy</span>
-<span class="fc" id="L48">    private static final Random random = new Random();</span>
+<span class="fc" id="L46">    private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy</span>
+<span class="fc" id="L47">    private static final Random random = new Random();</span>
+    private static HealthDataSimulator instance; // A private static variable to hold the single instance of the class
+
+
+    /**
+     * Gets the singleton instance of HealthDataSimulator.
+     * Creates a new instance if one doesn't exist yet.
+     * 
+     * @return The singleton instance of DataStorage
+     */
+    public static HealthDataSimulator getInstance() {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (instance == null) {</span>
+<span class="nc" id="L59">            synchronized (HealthDataSimulator.class) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                if (instance == null) {</span>
+<span class="nc" id="L61">                    instance = new HealthDataSimulator();</span>
+                }
+<span class="nc" id="L63">            }</span>
+        }
+<span class="nc" id="L65">        return instance;</span>
+    }
+
 
     /**
      * Main entry point for the health data simulation program.
@@ -56,15 +75,16 @@ import java.util.ArrayList;
      */
     public static void main(String[] args) throws IOException {
 
-<span class="nc" id="L59">        parseArguments(args);</span>
+<span class="nc" id="L78">        HealthDataSimulator simulator = HealthDataSimulator.getInstance();</span>
+<span class="nc" id="L79">        parseArguments(args);</span>
 
-<span class="nc" id="L61">        scheduler = Executors.newScheduledThreadPool(patientCount * 4);</span>
+<span class="nc" id="L81">        scheduler = Executors.newScheduledThreadPool(patientCount * 4);</span>
 
-<span class="nc" id="L63">        List&lt;Integer&gt; patientIds = initializePatientIds(patientCount);</span>
-<span class="nc" id="L64">        Collections.shuffle(patientIds); // Randomize the order of patient IDs</span>
+<span class="nc" id="L83">        List&lt;Integer&gt; patientIds = simulator.initializePatientIds(patientCount);</span>
+<span class="nc" id="L84">        Collections.shuffle(patientIds); // Randomize the order of patient IDs</span>
 
-<span class="nc" id="L66">        scheduleTasksForPatients(patientIds);</span>
-<span class="nc" id="L67">    }</span>
+<span class="nc" id="L86">        simulator.scheduleTasksForPatients(patientIds);</span>
+<span class="nc" id="L87">    }</span>
 
     /**
      * Parses command-line arguments and configures the simulator accordingly.
@@ -73,85 +93,85 @@ import java.util.ArrayList;
      * @throws IOException If file output directory creation fails
      */
     private static void parseArguments(String[] args) throws IOException {
-<span class="fc bfc" id="L76" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
-<span class="pc bpc" id="L77" title="2 of 4 branches missed.">            switch (args[i]) {</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="pc bpc" id="L97" title="2 of 4 branches missed.">            switch (args[i]) {</span>
                 case &quot;-h&quot;:
-<span class="nc" id="L79">                    printHelp();</span>
-<span class="nc" id="L80">                    System.exit(0);</span>
-<span class="nc" id="L81">                    break;</span>
+<span class="nc" id="L99">                    printHelp();</span>
+<span class="nc" id="L100">                    System.exit(0);</span>
+<span class="nc" id="L101">                    break;</span>
                 case &quot;--patient-count&quot;:
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">                    if (i + 1 &lt; args.length) {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                    if (i + 1 &lt; args.length) {</span>
                         try {
-<span class="fc" id="L85">                            patientCount = Integer.parseInt(args[++i]);</span>
-<span class="fc" id="L86">                        } catch (NumberFormatException e) {</span>
-<span class="fc" id="L87">                            System.err</span>
-<span class="fc" id="L88">                                    .println(&quot;Error: Invalid number of patients. Using default value: &quot; + patientCount);</span>
-                        }
+<span class="fc" id="L105">                            patientCount = Integer.parseInt(args[++i]);</span>
+<span class="fc" id="L106">                        } catch (NumberFormatException e) {</span>
+<span class="fc" id="L107">                            System.err</span>
+<span class="fc" id="L108">                                    .println(&quot;Error: Invalid number of patients. Using default value: &quot; + patientCount);</span>
+<span class="fc" id="L109">                        }</span>
                     }
-<span class="fc" id="L91">                    break;</span>
+                    break;
                 case &quot;--output&quot;:
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                    if (i + 1 &lt; args.length) {</span>
-<span class="fc" id="L94">                        String outputArg = args[++i];</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">                        if (outputArg.equals(&quot;console&quot;)) {</span>
-<span class="fc" id="L96">                            outputStrategy = new ConsoleOutputStrategy();</span>
-<span class="fc bfc" id="L97" title="All 2 branches covered.">                        } else if (outputArg.startsWith(&quot;file:&quot;)) {</span>
-<span class="fc" id="L98">                            String baseDirectory = outputArg.substring(5);</span>
-<span class="fc" id="L99">                            Path outputPath = Paths.get(baseDirectory);</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">                            if (!Files.exists(outputPath)) {</span>
-<span class="nc" id="L101">                                Files.createDirectories(outputPath);</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">                    if (i + 1 &lt; args.length) {</span>
+<span class="fc" id="L114">                        String outputArg = args[++i];</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">                        if (outputArg.equals(&quot;console&quot;)) {</span>
+<span class="fc" id="L116">                            outputStrategy = new ConsoleOutputStrategy();</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">                        } else if (outputArg.startsWith(&quot;file:&quot;)) {</span>
+<span class="fc" id="L118">                            String baseDirectory = outputArg.substring(5);</span>
+<span class="fc" id="L119">                            Path outputPath = Paths.get(baseDirectory);</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">                            if (!Files.exists(outputPath)) {</span>
+<span class="nc" id="L121">                                Files.createDirectories(outputPath);</span>
                             }
-<span class="fc" id="L103">                            outputStrategy = new FileOutputStrategy(baseDirectory);</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">                        } else if (outputArg.startsWith(&quot;websocket:&quot;)) {</span>
+<span class="fc" id="L123">                            outputStrategy = new FileOutputStrategy(baseDirectory);</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                        } else if (outputArg.startsWith(&quot;websocket:&quot;)) {</span>
                             try {
-<span class="fc" id="L106">                                int port = Integer.parseInt(outputArg.substring(10));</span>
+<span class="fc" id="L126">                                int port = Integer.parseInt(outputArg.substring(10));</span>
                                 // Initialize your WebSocket output strategy here
-<span class="fc" id="L108">                                outputStrategy = new WebSocketOutputStrategy(port);</span>
-<span class="fc" id="L109">                                System.out.println(&quot;WebSocket output will be on port: &quot; + port);</span>
-<span class="fc" id="L110">                            } catch (NumberFormatException e) {</span>
-<span class="fc" id="L111">                                System.err.println(</span>
-<span class="fc" id="L112">                                        &quot;Invalid port for WebSocket output. Please specify a valid port number.&quot;);</span>
-                            }
-<span class="fc bfc" id="L114" title="All 2 branches covered.">                        } else if (outputArg.startsWith(&quot;tcp:&quot;)) {</span>
+<span class="fc" id="L128">                                outputStrategy = new WebSocketOutputStrategy(port);</span>
+<span class="fc" id="L129">                                System.out.println(&quot;WebSocket output will be on port: &quot; + port);</span>
+<span class="fc" id="L130">                            } catch (NumberFormatException e) {</span>
+<span class="fc" id="L131">                                System.err.println(</span>
+                                        &quot;Invalid port for WebSocket output. Please specify a valid port number.&quot;);
+<span class="fc" id="L133">                            }</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">                        } else if (outputArg.startsWith(&quot;tcp:&quot;)) {</span>
                             try {
-<span class="fc" id="L116">                                int port = Integer.parseInt(outputArg.substring(4));</span>
+<span class="fc" id="L136">                                int port = Integer.parseInt(outputArg.substring(4));</span>
                                 // Initialize your TCP socket output strategy here
-<span class="fc" id="L118">                                outputStrategy = new TcpOutputStrategy(port);</span>
-<span class="fc" id="L119">                                System.out.println(&quot;TCP socket output will be on port: &quot; + port);</span>
-<span class="fc" id="L120">                            } catch (NumberFormatException e) {</span>
-<span class="fc" id="L121">                                System.err.println(&quot;Invalid port for TCP output. Please specify a valid port number.&quot;);</span>
-                            }
-<span class="fc" id="L123">                        } else {</span>
-<span class="fc" id="L124">                            System.err.println(&quot;Unknown output type. Using default (console).&quot;);</span>
+<span class="fc" id="L138">                                outputStrategy = new TcpOutputStrategy(port);</span>
+<span class="fc" id="L139">                                System.out.println(&quot;TCP socket output will be on port: &quot; + port);</span>
+<span class="fc" id="L140">                            } catch (NumberFormatException e) {</span>
+<span class="fc" id="L141">                                System.err.println(&quot;Invalid port for TCP output. Please specify a valid port number.&quot;);</span>
+<span class="fc" id="L142">                            }</span>
+                        } else {
+<span class="fc" id="L144">                            System.err.println(&quot;Unknown output type. Using default (console).&quot;);</span>
                         }
-                    }
-<span class="fc" id="L127">                    break;</span>
+<span class="fc" id="L146">                    }</span>
+                    break;
                 default:
-<span class="nc" id="L129">                    System.err.println(&quot;Unknown option '&quot; + args[i] + &quot;'&quot;);</span>
-<span class="nc" id="L130">                    printHelp();</span>
-<span class="nc" id="L131">                    System.exit(1);</span>
+<span class="nc" id="L149">                    System.err.println(&quot;Unknown option '&quot; + args[i] + &quot;'&quot;);</span>
+<span class="nc" id="L150">                    printHelp();</span>
+<span class="nc" id="L151">                    System.exit(1);</span>
             }
         }
-<span class="fc" id="L134">    }</span>
+<span class="fc" id="L154">    }</span>
 
     /**
      * Prints help information describing command-line options and usage examples.
      */
     private static void printHelp() {
-<span class="fc" id="L140">        System.out.println(&quot;Usage: java HealthDataSimulator [options]&quot;);</span>
-<span class="fc" id="L141">        System.out.println(&quot;Options:&quot;);</span>
-<span class="fc" id="L142">        System.out.println(&quot;  -h                       Show help and exit.&quot;);</span>
-<span class="fc" id="L143">        System.out.println(</span>
-<span class="fc" id="L144">                &quot;  --patient-count &lt;count&gt;  Specify the number of patients to simulate data for (default: 50).&quot;);</span>
-<span class="fc" id="L145">        System.out.println(&quot;  --output &lt;type&gt;          Define the output method. Options are:&quot;);</span>
-<span class="fc" id="L146">        System.out.println(&quot;                             'console' for console output,&quot;);</span>
-<span class="fc" id="L147">        System.out.println(&quot;                             'file:&lt;directory&gt;' for file output,&quot;);</span>
-<span class="fc" id="L148">        System.out.println(&quot;                             'websocket:&lt;port&gt;' for WebSocket output,&quot;);</span>
-<span class="fc" id="L149">        System.out.println(&quot;                             'tcp:&lt;port&gt;' for TCP socket output.&quot;);</span>
-<span class="fc" id="L150">        System.out.println(&quot;Example:&quot;);</span>
-<span class="fc" id="L151">        System.out.println(&quot;  java HealthDataSimulator --patient-count 100 --output websocket:8080&quot;);</span>
-<span class="fc" id="L152">        System.out.println(</span>
-<span class="fc" id="L153">                &quot;  This command simulates data for 100 patients and sends the output to WebSocket clients connected to port 8080.&quot;);</span>
-<span class="fc" id="L154">    }</span>
+<span class="fc" id="L160">        System.out.println(&quot;Usage: java HealthDataSimulator [options]&quot;);</span>
+<span class="fc" id="L161">        System.out.println(&quot;Options:&quot;);</span>
+<span class="fc" id="L162">        System.out.println(&quot;  -h                       Show help and exit.&quot;);</span>
+<span class="fc" id="L163">        System.out.println(</span>
+                &quot;  --patient-count &lt;count&gt;  Specify the number of patients to simulate data for (default: 50).&quot;);
+<span class="fc" id="L165">        System.out.println(&quot;  --output &lt;type&gt;          Define the output method. Options are:&quot;);</span>
+<span class="fc" id="L166">        System.out.println(&quot;                             'console' for console output,&quot;);</span>
+<span class="fc" id="L167">        System.out.println(&quot;                             'file:&lt;directory&gt;' for file output,&quot;);</span>
+<span class="fc" id="L168">        System.out.println(&quot;                             'websocket:&lt;port&gt;' for WebSocket output,&quot;);</span>
+<span class="fc" id="L169">        System.out.println(&quot;                             'tcp:&lt;port&gt;' for TCP socket output.&quot;);</span>
+<span class="fc" id="L170">        System.out.println(&quot;Example:&quot;);</span>
+<span class="fc" id="L171">        System.out.println(&quot;  java HealthDataSimulator --patient-count 100 --output websocket:8080&quot;);</span>
+<span class="fc" id="L172">        System.out.println(</span>
+                &quot;  This command simulates data for 100 patients and sends the output to WebSocket clients connected to port 8080.&quot;);
+<span class="fc" id="L174">    }</span>
 
     /**
      * Initializes a list of patient IDs for the simulation.
@@ -160,11 +180,11 @@ import java.util.ArrayList;
      * @return List of patient IDs starting from 1 up to patientCount
      */
     private static List&lt;Integer&gt; initializePatientIds(int patientCount) {
-<span class="fc" id="L163">        List&lt;Integer&gt; patientIds = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L164" title="All 2 branches covered.">        for (int i = 1; i &lt;= patientCount; i++) {</span>
-<span class="fc" id="L165">            patientIds.add(i);</span>
+<span class="fc" id="L183">        List&lt;Integer&gt; patientIds = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        for (int i = 1; i &lt;= patientCount; i++) {</span>
+<span class="fc" id="L185">            patientIds.add(i);</span>
         }
-<span class="fc" id="L167">        return patientIds;</span>
+<span class="fc" id="L187">        return patientIds;</span>
     }
 
     /**
@@ -181,20 +201,20 @@ import java.util.ArrayList;
      * @param patientIds List of patient IDs to schedule tasks for
      */
     private static void scheduleTasksForPatients(List&lt;Integer&gt; patientIds) {
-<span class="fc" id="L184">        ECGDataGenerator ecgDataGenerator = new ECGDataGenerator(patientCount);</span>
-<span class="fc" id="L185">        BloodSaturationDataGenerator bloodSaturationDataGenerator = new BloodSaturationDataGenerator(patientCount);</span>
-<span class="fc" id="L186">        BloodPressureDataGenerator bloodPressureDataGenerator = new BloodPressureDataGenerator(patientCount);</span>
-<span class="fc" id="L187">        BloodLevelsDataGenerator bloodLevelsDataGenerator = new BloodLevelsDataGenerator(patientCount);</span>
-<span class="fc" id="L188">        AlertGenerator alertGenerator = new AlertGenerator(patientCount);</span>
+<span class="fc" id="L204">        ECGDataGenerator ecgDataGenerator = new ECGDataGenerator(patientCount);</span>
+<span class="fc" id="L205">        BloodSaturationDataGenerator bloodSaturationDataGenerator = new BloodSaturationDataGenerator(patientCount);</span>
+<span class="fc" id="L206">        BloodPressureDataGenerator bloodPressureDataGenerator = new BloodPressureDataGenerator(patientCount);</span>
+<span class="fc" id="L207">        BloodLevelsDataGenerator bloodLevelsDataGenerator = new BloodLevelsDataGenerator(patientCount);</span>
+<span class="fc" id="L208">        AlertGenerator alertGenerator = new AlertGenerator(patientCount);</span>
 
-<span class="fc bfc" id="L190" title="All 2 branches covered.">        for (int patientId : patientIds) {</span>
-<span class="pc" id="L191">            scheduleTask(() -&gt; ecgDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);</span>
-<span class="fc" id="L192">            scheduleTask(() -&gt; bloodSaturationDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);</span>
-<span class="fc" id="L193">            scheduleTask(() -&gt; bloodPressureDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.MINUTES);</span>
-<span class="fc" id="L194">            scheduleTask(() -&gt; bloodLevelsDataGenerator.generate(patientId, outputStrategy), 2, TimeUnit.MINUTES);</span>
-<span class="fc" id="L195">            scheduleTask(() -&gt; alertGenerator.generate(patientId, outputStrategy), 20, TimeUnit.SECONDS);</span>
-        }
-<span class="fc" id="L197">    }</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">        for (int patientId : patientIds) {</span>
+<span class="pc" id="L211">            scheduleTask(() -&gt; ecgDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);</span>
+<span class="pc" id="L212">            scheduleTask(() -&gt; bloodSaturationDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);</span>
+<span class="pc" id="L213">            scheduleTask(() -&gt; bloodPressureDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.MINUTES);</span>
+<span class="pc" id="L214">            scheduleTask(() -&gt; bloodLevelsDataGenerator.generate(patientId, outputStrategy), 2, TimeUnit.MINUTES);</span>
+<span class="pc" id="L215">            scheduleTask(() -&gt; alertGenerator.generate(patientId, outputStrategy), 20, TimeUnit.SECONDS);</span>
+<span class="fc" id="L216">        }</span>
+<span class="fc" id="L217">    }</span>
 
     /**
      * Schedules a recurring task with randomized initial delay.
@@ -204,7 +224,7 @@ import java.util.ArrayList;
      * @param timeUnit  The time unit for the period parameter
      */
     private static void scheduleTask(Runnable task, long period, TimeUnit timeUnit) {
-<span class="fc" id="L207">        scheduler.scheduleAtFixedRate(task, random.nextInt(5), period, timeUnit);</span>
-<span class="fc" id="L208">    }</span>
+<span class="fc" id="L227">        scheduler.scheduleAtFixedRate(task, random.nextInt(5), period, timeUnit);</span>
+<span class="fc" id="L228">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

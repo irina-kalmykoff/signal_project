@@ -38,10 +38,10 @@ public class BloodPressureDataGenerator implements PatientDataGenerator {
 <span class="fc" id="L38">                    Double.toString(newSystolicValue));</span>
 <span class="fc" id="L39">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;DiastolicPressure&quot;,</span>
 <span class="fc" id="L40">                    Double.toString(newDiastolicValue));</span>
-<span class="pc" id="L41">        } catch (Exception e) {</span>
+<span class="nc" id="L41">        } catch (Exception e) {</span>
 <span class="nc" id="L42">            System.err.println(&quot;An error occurred while generating blood pressure data for patient &quot; + patientId);</span>
 <span class="nc" id="L43">            e.printStackTrace(); // This will print the stack trace to help identify where the error occurred.</span>
-        }
+<span class="fc" id="L44">        }</span>
 <span class="fc" id="L45">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

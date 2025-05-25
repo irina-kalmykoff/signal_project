@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.alerts.AlertGenerator;
+import com.alerts.BloodOxygenAlertFactory;
+import com.alerts.BloodPressureAlertFactory;
+import com.alerts.ECGAlertFactory;
+import com.alerts.CallButtonAlertFactory;
 
 /**
  * Manages storage and retrieval of patient data within a healthcare monitoring
@@ -14,14 +17,34 @@ import com.alerts.AlertGenerator;
  */
 public class DataStorage {
     private Map<Integer, Patient> patientMap; // Stores patient objects indexed by their unique patient ID.
+    private static DataStorage instance;        //a private static variable to hold the single instance of the class
 
     /**
      * Constructs a new instance of DataStorage, initializing the underlying storage
      * structure.
      */
-    public DataStorage() {
+    private DataStorage() {
         this.patientMap = new HashMap<>();
     }
+
+    /**
+     * Gets the singleton instance of DataStorage.
+     * Creates a new instance if one doesn't exist yet.
+     * 
+     * @return The singleton instance of DataStorage
+     */
+    public static DataStorage getInstance() {
+        if (instance == null) {
+            synchronized (DataStorage.class) {
+                if (instance == null) {
+                    instance = new DataStorage();
+                }
+            }
+        }
+        return instance;
+    }
+
+ 
 
     /**
      * Adds or updates patient data in the storage.
@@ -110,12 +133,35 @@ public class DataStorage {
                     ", Timestamp: " + record.getTimestamp());
         }
 
-        // Initialize the AlertGenerator with the storage
-        AlertGenerator alertGenerator = new AlertGenerator(storage);
+        // // Initialize the AlertGenerator with the storage
+        // AlertGenerator alertGenerator = new AlertGenerator(storage);
 
-        // Evaluate all patients' data to check for conditions that may trigger alerts
+        // // Evaluate all patients' data to check for conditions that may trigger alerts
+        // for (Patient patient : storage.getAllPatients()) {
+        //     alertGenerator.evaluateData(patient);
+        // }
+
+        
+        // Initialize the alert factories with the storage
+        BloodOxygenAlertFactory oxygenAlertFactory = new BloodOxygenAlertFactory(storage);
+        BloodPressureAlertFactory pressureAlertFactory = new BloodPressureAlertFactory(storage);
+        ECGAlertFactory ecgAlertFactory = new ECGAlertFactory(storage);
+        CallButtonAlertFactory callButtonAlertFactory = new CallButtonAlertFactory(storage);
+
+        // Get current timestamp for alerts
+        long timestamp = System.currentTimeMillis();
+
+        // Evaluate all patients' data using the factories directly
         for (Patient patient : storage.getAllPatients()) {
-            alertGenerator.evaluateData(patient);
+            String patientId = records.isEmpty() ? 
+                String.valueOf(patient) : // Fallback, just converts Patient object to string
+                String.valueOf(records.get(0).getPatientId());
+            
+            // Check each alert type using the appropriate factory
+            oxygenAlertFactory.createAlert(patientId, "", timestamp);
+            pressureAlertFactory.createAlert(patientId, "", timestamp);
+            ecgAlertFactory.createAlert(patientId, "", timestamp);
+            callButtonAlertFactory.createAlert(patientId, "", timestamp);
         }
     }
 }

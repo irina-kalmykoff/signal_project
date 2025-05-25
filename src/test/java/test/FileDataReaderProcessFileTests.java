@@ -2,6 +2,7 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 
 import com.data_management.*;
 
@@ -26,8 +28,30 @@ public class FileDataReaderProcessFileTests {
 
     @BeforeEach
     public void setUp() {
-        dataStorage = new DataStorage();
+        // Reset singleton before each test
+        resetDataStorage();
+        dataStorage = DataStorage.getInstance();
         reader = new FileDataReader(tempDir.toString());
+    }
+    
+    @AfterEach
+    public void tearDown() {
+        // Reset singleton after each test
+        resetDataStorage();
+    }
+    
+    /**
+     * Reset DataStorage singleton between tests
+     */
+    private void resetDataStorage() {
+        try {
+            Field instance = DataStorage.class.getDeclaredField("instance");
+            instance.setAccessible(true);
+            instance.set(null, null);
+            System.out.println("DataStorage singleton reset successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to reset DataStorage singleton: " + e.getMessage());
+        }
     }
 
     /**

@@ -4,36 +4,88 @@ import java.util.Random;
 
 import com.cardio_generator.outputs.OutputStrategy;
 
-
+/**
+ * Simulates blood oxygen saturation (SpO2) data for patients.
+ * &lt;p&gt;
+ * This generator creates realistic blood oxygen saturation values that:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Stay within medically realistic ranges (90-100%)&lt;/li&gt;
+ *   &lt;li&gt;Show small variations over time&lt;/li&gt;
+ *   &lt;li&gt;Maintain patient-specific baseline values&lt;/li&gt;
+ * &lt;/ul&gt;
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * SpO2 (peripheral oxygen saturation) represents the percentage of hemoglobin
+ * binding sites in the bloodstream occupied by oxygen. Normal values for healthy
+ * individuals typically range from 95% to 100%.
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * This class implements the PatientDataGenerator interface to generate data and send it using a specified output stragety.
+ */
 public class BloodSaturationDataGenerator implements PatientDataGenerator {
-<span class="fc" id="L9">    private static final Random random = new Random();</span>
+
+    // Random number generator for creating variations in saturation values
+<span class="fc" id="L28">    private static final Random random = new Random();</span>
+
+    /**
+     * Stores the most recently generated saturation value for each patient.
+     * Used to create realistic transitions between subsequent readings.
+    */
     private int[] lastSaturationValues;
 
-<span class="fc" id="L12">    public BloodSaturationDataGenerator(int patientCount) {</span>
-<span class="fc" id="L13">        lastSaturationValues = new int[patientCount + 1];</span>
+    /**
+     * Creates a new BloodSaturationDataGenerator for the specified number of patients.
+     * &lt;p&gt;
+     * Initializes each patient with a random baseline saturation value between 95% and 100%,
+     * representing normal oxygen saturation levels in healthy individuals.
+     * &lt;/p&gt;
+     * 
+     * @param patientCount The maximum number of patients to generate data for
+    */
+<span class="fc" id="L45">    public BloodSaturationDataGenerator(int patientCount) {</span>
+<span class="fc" id="L46">        lastSaturationValues = new int[patientCount + 1];</span>
 
         // Initialize with baseline saturation values for each patient
-<span class="fc bfc" id="L16" title="All 2 branches covered.">        for (int i = 1; i &lt;= patientCount; i++) {</span>
-<span class="fc" id="L17">            lastSaturationValues[i] = 95 + random.nextInt(6); // Initializes with a value between 95 and 100</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        for (int i = 1; i &lt;= patientCount; i++) {</span>
+<span class="fc" id="L50">            lastSaturationValues[i] = 95 + random.nextInt(6); // Initializes with a value between 95 and 100</span>
         }
-<span class="fc" id="L19">    }</span>
+<span class="fc" id="L52">    }</span>
 
+    /**
+     * Generates blood oxygen saturation data for a specific patient.
+     * &lt;p&gt;
+     * This method:
+     * &lt;ol&gt;
+     *   &lt;li&gt;Creates a small random variation from the patient's last saturation value&lt;/li&gt;
+     *   &lt;li&gt;Ensures the new value stays within the medically realistic range (90-100%)&lt;/li&gt;
+     *   &lt;li&gt;Updates the stored value for the patient&lt;/li&gt;
+     *   &lt;li&gt;Outputs the new value through the provided strategy&lt;/li&gt;
+     * &lt;/ol&gt;
+     * &lt;/p&gt;
+     * &lt;p&gt;
+     * The small fluctuations (-1, 0, or +1) simulate the minor changes that occur in real-time
+     * monitoring of oxygen saturation levels.
+     * &lt;/p&gt;
+     *
+     * @param patientId The ID of the patient to generate data for
+     * @param outputStrategy The strategy to use for outputting the generated data
+    */
     @Override
     public void generate(int patientId, OutputStrategy outputStrategy) {
         try {
             // Simulate blood saturation values
-<span class="fc" id="L25">            int variation = random.nextInt(3) - 1; // -1, 0, or 1 to simulate small fluctuations</span>
-<span class="fc" id="L26">            int newSaturationValue = lastSaturationValues[patientId] + variation;</span>
+<span class="fc" id="L77">            int variation = random.nextInt(3) - 1; // -1, 0, or 1 to simulate small fluctuations</span>
+<span class="fc" id="L78">            int newSaturationValue = lastSaturationValues[patientId] + variation;</span>
 
             // Ensure the saturation stays within a realistic and healthy range
-<span class="fc" id="L29">            newSaturationValue = Math.min(Math.max(newSaturationValue, 90), 100);</span>
-<span class="fc" id="L30">            lastSaturationValues[patientId] = newSaturationValue;</span>
-<span class="fc" id="L31">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;Saturation&quot;,</span>
-<span class="fc" id="L32">                    Double.toString(newSaturationValue) + &quot;%&quot;);</span>
-<span class="pc" id="L33">        } catch (Exception e) {</span>
-<span class="nc" id="L34">            System.err.println(&quot;An error occurred while generating blood saturation data for patient &quot; + patientId);</span>
-<span class="nc" id="L35">            e.printStackTrace(); // This will print the stack trace to help identify where the error occurred.</span>
-        }
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L81">            newSaturationValue = Math.min(Math.max(newSaturationValue, 90), 100);</span>
+<span class="fc" id="L82">            lastSaturationValues[patientId] = newSaturationValue;</span>
+<span class="fc" id="L83">            outputStrategy.output(patientId, System.currentTimeMillis(), &quot;Saturation&quot;,</span>
+<span class="fc" id="L84">                    Double.toString(newSaturationValue) + &quot;%&quot;);</span>
+<span class="nc" id="L85">        } catch (Exception e) {</span>
+<span class="nc" id="L86">            System.err.println(&quot;An error occurred while generating blood saturation data for patient &quot; + patientId);</span>
+<span class="nc" id="L87">            e.printStackTrace(); // This will print the stack trace to help identify where the error occurred.</span>
+<span class="fc" id="L88">        }</span>
+<span class="fc" id="L89">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -16,40 +16,44 @@ import com.data_management.PatientRecord;
  */
 public class AlertSystemTest {
     
-    // A custom alert collector to capture alerts
-    private static class TestAlertCollector extends AlertGenerator {
-        private List<Alert> capturedAlerts = new ArrayList<>();
+    // // A custom alert collector to capture alerts
+    // private static class TestAlertCollector extends AlertGenerator {
+    //     private List<Alert> capturedAlerts = new ArrayList<>();
         
-        public TestAlertCollector(DataStorage dataStorage) {
-            super(dataStorage);
-        }
+    //     public TestAlertCollector(DataStorage dataStorage) {
+    //         super(dataStorage);
+    //     }
         
-        @Override
-        protected void triggerAlert(Alert alert) {
-            capturedAlerts.add(alert);
-            System.out.println("ALERT #" + capturedAlerts.size() + ": " + alert.getCondition() +
-                    " for Patient ID: " + alert.getPatientId() +
-                    " at " + new java.util.Date(alert.getTimestamp()));
-        }
+    //     @Override
+    //     protected void triggerAlert(Alert alert) {
+    //         capturedAlerts.add(alert);
+    //         System.out.println("ALERT #" + capturedAlerts.size() + ": " + alert.getCondition() +
+    //                 " for Patient ID: " + alert.getPatientId() +
+    //                 " at " + new java.util.Date(alert.getTimestamp()));
+    //     }
         
-        public int getAlertCount() {
-            return capturedAlerts.size();
-        }
+    //     public int getAlertCount() {
+    //         return capturedAlerts.size();
+    //     }
         
-        // public List<Alert> getCapturedAlerts() {
-        //     return capturedAlerts;
-        // }
         
-        public List<Alert> getAlertsForPatient(String patientId) {
-            List<Alert> patientAlerts = new ArrayList<>();
-            for (Alert alert : capturedAlerts) {
-                if (alert.getPatientId().equals(patientId)) {
-                    patientAlerts.add(alert);
-                }
+    /**
+     * Helper method to filter alerts for a specific patient
+     * 
+     * @param alerts List of all alerts
+     * @param patientId The patient ID to filter for
+     * @return List of alerts for the specified patient
+     */
+    private static List<Alert> getAlertsForPatient(List<Alert> alerts, String patientId) {
+        List<Alert> patientAlerts = new ArrayList<>();
+        for (Alert alert : alerts) {
+            if (alert.getPatientId().equals(patientId)) {
+                patientAlerts.add(alert);
             }
-            return patientAlerts;
         }
+        return patientAlerts;
     }
+   
     
     public static void main(String[] args) {
         try {
@@ -63,13 +67,13 @@ public class AlertSystemTest {
             
             // Step 2: Read the data using FileDataReader
             System.out.println("Reading test data...");
-            DataStorage dataStorage = new DataStorage();
+            DataStorage dataStorage = DataStorage.getInstance();
             FileDataReader reader = new FileDataReader(testOutputDir);
             reader.readData(dataStorage);
             
             // Step 3: Process each patient through the alert system
             System.out.println("Processing alerts...");
-            TestAlertCollector alertCollector = new TestAlertCollector(dataStorage);
+            TestAlertFactoryManager testManager = new TestAlertFactoryManager(dataStorage);
             
             List<Patient> patients = dataStorage.getAllPatients();
             System.out.println("Found " + patients.size() + " patients in the data");
@@ -87,21 +91,28 @@ public class AlertSystemTest {
                 }
                 
                 System.out.println("\nProcessing Patient ID: " + patientId);
-                alertCollector.evaluateData(patient);
+                testManager.checkAllAlerts(patient);
                 
                 // Print alert results for this patient
-                List<Alert> patientAlerts = alertCollector.getAlertsForPatient(String.valueOf(patientId));
+                List<Alert> patientAlerts = getAlertsForPatient(testManager.getAllAlerts(), String.valueOf(patientId));
                 if (patientAlerts.isEmpty()) {
                     System.out.println("No alerts detected for Patient ID: " + patientId);
                 } else {
                     System.out.println("Detected " + patientAlerts.size() + " alert(s) for Patient ID: " + patientId);
-                }
+                    // Print each alert
+                    for (int i = 0; i < patientAlerts.size(); i++) {
+                        Alert alert = patientAlerts.get(i);
+                        System.out.println("ALERT #" + (i+1) + ": " + alert.getCondition() +
+                            " for Patient ID: " + alert.getPatientId() +
+                            " at " + new java.util.Date(alert.getTimestamp()));
+                }}
+                // Clear alerts for the next patient
+                testManager.clearAllAlerts();
             }
             
             // Summary
             System.out.println("\nTest Summary:");
             System.out.println("Total number of patients: " + patients.size());
-            System.out.println("Total Alerts Generated: " + alertCollector.getAlertCount());
             
             // Expected alerts categorization
             System.out.println("\nExpected Test Results:");
@@ -129,4 +140,6 @@ public class AlertSystemTest {
             e.printStackTrace();
         }
     }
+
 }
+

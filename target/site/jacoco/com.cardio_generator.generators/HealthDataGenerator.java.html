@@ -85,7 +85,7 @@ public class HealthDataGenerator {
                     // Output the resolved alert
 <span class="fc" id="L86">                    outputStrategy.output(patientId, System.currentTimeMillis(), &quot;Alert&quot;, &quot;0&quot;); // 0 for resolved</span>
                 }
-<span class="fc" id="L88">            } else {</span>
+            } else {
                 // If alert is not active, check if a new one gets triggered
 <span class="fc bfc" id="L90" title="All 2 branches covered.">                if (randomGenerator.nextDouble() &lt; ALERT_TRIGGER_PROBABILITY) {</span>
 <span class="fc" id="L91">                    alertStates[patientId] = true;</span>
@@ -96,7 +96,7 @@ public class HealthDataGenerator {
 <span class="fc" id="L96">        } catch (Exception e) {</span>
 <span class="fc" id="L97">            System.err.println(&quot;An error occurred while generating alert button data for patient &quot; + patientId);</span>
 <span class="fc" id="L98">            e.printStackTrace();</span>
-        }
+<span class="fc" id="L99">        }</span>
 <span class="fc" id="L100">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

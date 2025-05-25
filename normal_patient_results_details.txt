@@ -1,0 +1,7 @@
+DETAILED ALERT LOG
+=================
+
+Patient ID: 0
+--------------------------
+No alerts triggered
+
