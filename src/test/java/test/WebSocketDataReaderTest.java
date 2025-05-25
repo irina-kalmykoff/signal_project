@@ -29,7 +29,7 @@ public class WebSocketDataReaderTest {
     private WebSocketDataReader webSocketReader;
     private DataStorage mockDataStorage;
     private TestWebSocketServer testServer;
-    private static final int TEST_PORT = 8081;
+    private static final int TEST_PORT = 8082;
     private static final String TEST_HOST = "localhost";
     private CountDownLatch serverStartLatch;
     private CountDownLatch clientConnectedLatch;

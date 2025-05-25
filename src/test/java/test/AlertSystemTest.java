@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.alerts.Alert;
-import com.alerts.AlertGenerator;
+// import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.FileDataReader;
 import com.data_management.Patient;

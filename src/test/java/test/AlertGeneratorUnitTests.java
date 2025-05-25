@@ -108,96 +108,62 @@ public class AlertGeneratorUnitTests {
                 "Alert should be for decreasing trend");
     }
 
-//     @Test
-//     public void testBloodPressureThreshold() throws Exception {
+    @Test
+    public void testBloodPressureThreshold() throws Exception {
+        // Create test records for high systolic pressure
+        List<PatientRecord> highSystolicRecords = Arrays.asList(
+                new PatientRecord(1, 170.0, "SystolicPressure", 1000000),
+                new PatientRecord(1, 185.0, "SystolicPressure", 1001000)
+        );
+        System.out.println("DEBUG - Testing blood pressure threshold:");
+        System.out.println("  Systolic values: 170.0, 185.0 mmHg");
+        System.out.println("DEBUG - Examining TestBloodPressureAlertFactory.createAlert method:");
+        
+        // Mock the records again with both types
+        Mockito.when(mockPatient.getRecords(Mockito.anyLong(), Mockito.anyLong()))
+               .thenReturn(highSystolicRecords);
 
-//         // Create test records for high systolic pressure
-//         List<PatientRecord> highSystolicRecords = Arrays.asList(
-//                 new PatientRecord(1, 170.0, "SystolicPressure", 1000000),
-//                 new PatientRecord(1, 185.0, "SystolicPressure", 1001000)
-//         );
-//         System.out.println("DEBUG - Testing blood pressure threshold:");
-//         System.out.println("  Systolic values: 170.0, 185.0 mmHg");
-//         System.out.println("DEBUG - Examining TestBloodPressureAlertFactory.createAlert method:");
+        Alert systolicAlert = bloodPressureStrategy.checkAlert(mockPatient, highSystolicRecords, Collections.emptyList());
+        System.out.println("  High systolic direct result: " + 
+        (systolicAlert != null ? "Alert triggered: " + systolicAlert.getCondition() : "No alert"));
         
-//         // Mock the records again with both types
-//         Mockito.when(mockPatient.getRecords(Mockito.anyLong(), Mockito.anyLong()))
-//                .thenReturn(highSystolicRecords);
+        assertNotNull(systolicAlert, "High systolic pressure should trigger an alert");
+        assertTrue(systolicAlert.getCondition().toLowerCase().contains("high") &&
+                        systolicAlert.getCondition().toLowerCase().contains("systolic"),
+                "Alert should be for high systolic pressure");
 
+        resetDataStorage();
 
-//         Alert systolicAlert = bloodPressureStrategy.checkAlert(mockPatient, highSystolicRecords);
-//         System.out.println("  High systolic direct result: " + 
-//         (systolicAlert != null ? "Alert triggered: " + systolicAlert.getCondition() : "No alert"));
-        
-//         assertNotNull(systolicAlert, "High systolic pressure should trigger an alert");
-//         assertTrue(systolicAlert.getCondition().toLowerCase().contains("high") &&
-//                         systolicAlert.getCondition().toLowerCase().contains("systolic"),
-//                 "Alert should be for high systolic pressure");
+        // Clear alerts for next test
+        TestBloodPressureAlertFactory factory = testManager.getPressureAlertFactory();
+        factory.clearAlerts();
 
-//         ////////////////////////////////////
-//         resetDataStorage();
-//         DataStorage realDataStorage = DataStorage.getInstance();
-        
-//         // Add a test record at 181.0 mmHg
-//         int patientId = 9001;
-//         long now = System.currentTimeMillis();
-//         realDataStorage.addPatientData(patientId, 181.0, "SystolicPressure", now);
-        
-//         // Get the patient and test with alertManager
-//         Patient realPatient = realDataStorage.getPatient(patientId);
-//         TestAlertFactoryManager realAlertManager = new TestAlertFactoryManager(realDataStorage);
-//         realAlertManager.clearAllAlerts();
-//         realAlertManager.checkAllAlerts(realPatient);
-        
-//         // Check for alerts
-//         List<Alert> alerts = realAlertManager.getPressureAlertFactory().getCapturedAlerts();
-//         System.out.println("  Standalone approach alerts: " + alerts.size());
-//         for (Alert alert : alerts) {
-//             System.out.println("  Alert condition: " + alert.getCondition());
-//         }
-//         //// ////////////////////////////
-//         // Clear alerts for next test
-//         TestBloodPressureAlertFactory factory = testManager.getPressureAlertFactory();
-//         factory.clearAlerts();
+        // Create test records for low diastolic pressure
+        List<PatientRecord> lowDiastolicRecords = Arrays.asList(
+                new PatientRecord(1, 70.0, "DiastolicPressure", 1000000),
+                new PatientRecord(1, 55.0, "DiastolicPressure", 1001000)        );
 
-//         // Create test records for low diastolic pressure
-//         List<PatientRecord> lowDiastolicRecords = Arrays.asList(
-//                 new PatientRecord(1, 70.0, "DiastolicPressure", 1000000),
-//                 new PatientRecord(1, 55.0, "DiastolicPressure", 1001000)
-//         );
+        // Test low diastolic with the BloodPressureFactory
+        List<PatientRecord> combinedRecords = new ArrayList<>();
+        combinedRecords.addAll(highSystolicRecords);
+        combinedRecords.addAll(lowDiastolicRecords);
+        
+        // Mock the records again with both types
+        Mockito.when(mockPatient.getRecords(Mockito.anyLong(), Mockito.anyLong()))
+               .thenReturn(combinedRecords);        
+        
+        Alert diastolicAlert = bloodPressureStrategy.checkAlert(
+        mockPatient, Collections.emptyList(),  lowDiastolicRecords);
 
-
-//         // Test low diastolic with the BloodPressureFactory
-//         List<PatientRecord> combinedRecords = new ArrayList<>();
-//         combinedRecords.addAll(highSystolicRecords);
-//         combinedRecords.addAll(lowDiastolicRecords);
+        System.out.println("  Low diastolic direct result: " + 
+                     (diastolicAlert != null ? "Alert triggered: " + diastolicAlert.getCondition() : "No alert"));
         
-//         // Mock the records again with both types
-//         Mockito.when(mockPatient.getRecords(Mockito.anyLong(), Mockito.anyLong()))
-//                .thenReturn(combinedRecords);
-        
-//         // Test the strategy directly with filtered records
-//         List<PatientRecord> filteredSystolic = combinedRecords.stream()
-//             .filter(r -> r.getRecordType().equals("SystolicPressure"))
-//             .collect(Collectors.toList());
-            
-//         // Test the strategy directly with filtered records        
-//         List<PatientRecord> filteredDiastolic = lowDiastolicRecords.stream()
-//         .filter(r -> r.getRecordType().equals("DiastolicPressure"))
-//         .collect(Collectors.toList());
-        
-//         Alert diastolicAlert = bloodPressureStrategy.checkAlert(
-//         mockPatient, filteredSystolic, filteredDiastolic);
-
-//         System.out.println("  Low diastolic direct result: " + 
-//                      (diastolicAlert != null ? "Alert triggered: " + diastolicAlert.getCondition() : "No alert"));
-        
-//         // Verify alert was created
-//         assertNotNull(diastolicAlert, "Low diastolic should trigger an alert");
-//         assertTrue(diastolicAlert.getCondition().toLowerCase().contains("low") &&
-//                 diastolicAlert.getCondition().toLowerCase().contains("diastolic"),
-//                 "Alert should be for low diastolic pressure");       
-//     }
+        // Verify alert was created
+        assertNotNull(diastolicAlert, "Low diastolic should trigger an alert");
+        assertTrue(diastolicAlert.getCondition().toLowerCase().contains("low") &&
+                diastolicAlert.getCondition().toLowerCase().contains("diastolic"),
+                "Alert should be for low diastolic pressure");       
+    }
 
     @Test
     public void testOxygenSaturation() throws Exception {
