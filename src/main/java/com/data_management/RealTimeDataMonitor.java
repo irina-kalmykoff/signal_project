@@ -19,7 +19,7 @@ public class RealTimeDataMonitor {
         System.out.println("Starting WebSocket client to receive patient data...\n");
         
         // Initialize data storage
-        dataStorage = new DataStorage();
+        dataStorage = DataStorage.getInstance();
         
         // Create WebSocket reader (connecting to localhost:8080 by default)
         String hostname = "localhost";

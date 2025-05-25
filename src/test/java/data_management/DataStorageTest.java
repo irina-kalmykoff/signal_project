@@ -1,7 +1,7 @@
 package data_management;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+//import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 //import org.mockito.Mock;
@@ -25,7 +25,7 @@ class DataStorageTest {
         //        reader = mock(DataReader.class); //check later if needed at all
         // DataReader reader
         //DataStorage storage = new DataStorage(reader);
-        DataStorage storage = new DataStorage();
+        DataStorage storage = DataStorage.getInstance();
 
         storage.addPatientData(1, 100.0, "WhiteBloodCells", 1714376789050L);
         storage.addPatientData(1, 200.0, "WhiteBloodCells", 1714376789051L);
