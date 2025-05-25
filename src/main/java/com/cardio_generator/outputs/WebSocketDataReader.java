@@ -135,7 +135,7 @@ public class WebSocketDataReader implements ContinuousDataReader {
                 
                 String[] parts = message.trim().split(",");
                 
-                if (parts.length < 4) {
+                if (parts.length != 4) {
                     System.err.println("Invalid data format in message (expected 4 parts, got " + 
                                      parts.length + "): " + message);
                     return;
@@ -148,7 +148,7 @@ public class WebSocketDataReader implements ContinuousDataReader {
                 String valueStr = parts[3].trim();
 
                 // Validate parsed data
-                if (patientId < 0) {
+                if (patientId <= 0) {
                     System.err.println("Invalid patient ID (negative): " + patientId);
                     return;
                 }
@@ -210,6 +210,13 @@ public class WebSocketDataReader implements ContinuousDataReader {
             try {
                 // Clean the value string to handle percentages and other formats
                 String cleanValue = cleanNumericValue(valueStr);
+
+                // Do not add this record to the database if the string is corrupted.
+                if(cleanValue.equals("corrupted")){
+                    return;
+                }
+
+                // The string is not corrupted, so it can be safely added to DataStorage.
                 double value = Double.parseDouble(cleanValue);
                 dataStorage.addPatientData(patientId, value, recordType, timestamp);
                 
@@ -226,20 +233,28 @@ public class WebSocketDataReader implements ContinuousDataReader {
          */
         private String cleanNumericValue(String valueStr) {
             if (valueStr == null || valueStr.trim().isEmpty()) {
-                return "0";
+                return "corrupted";
             }
-            
-            // Remove common suffixes and trim whitespace
+
             String cleaned = valueStr.trim()
-                                    .replace("%", "")      // Remove percentage
-                                    .replace("mmHg", "")   // Remove blood pressure unit
-                                    .replace("BPM", "")    // Remove heart rate unit
-                                    .replace("bpm", "")    // Remove heart rate unit (lowercase)
-                                    .replace("°C", "")     // Remove temperature unit
-                                    .replace("°F", "");    // Remove temperature unit
-            
-            // Handle empty string after cleaning
-            return cleaned.trim().isEmpty() ? "0" : cleaned.trim();
+                                    .replace("%", "")
+                                    .replace("mmHg", "")
+                                    .replace("BPM", "")
+                                    .replace("bpm", "")
+                                    .replace("°C", "")
+                                    .replace("°F", "")
+                                    .trim();
+
+            if (cleaned.isEmpty()) {
+                return "corrupted";
+            }
+
+            try {
+                Double.parseDouble(cleaned);
+                return cleaned;
+            } catch (NumberFormatException e) {
+                return "corrupted";
+            }
         }
 
         @Override
@@ -259,3 +274,4 @@ public class WebSocketDataReader implements ContinuousDataReader {
         }
     }
 }
+

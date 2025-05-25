@@ -18,7 +18,7 @@ public class WebSocketOutputStrategy implements OutputStrategy {
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
         // Enhanced data validation to ensure all necessary patient information is present
-        if (patientId < 0) {
+        if (patientId <= 0) {
             System.err.println("Invalid patient ID (negative value): " + patientId + " - skipping send");
             return;
         }

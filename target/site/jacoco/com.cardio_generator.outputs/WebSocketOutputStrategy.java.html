@@ -18,24 +18,24 @@ public class WebSocketOutputStrategy implements OutputStrategy {
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
         // Enhanced data validation to ensure all necessary patient information is present
-<span class="pc bpc" id="L21" title="1 of 2 branches missed.">        if (patientId &lt; 0) {</span>
-<span class="nc" id="L22">            System.err.println(&quot;Invalid patient ID (negative value): &quot; + patientId + &quot; - skipping send&quot;);</span>
-<span class="nc" id="L23">            return;</span>
+<span class="fc bfc" id="L21" title="All 2 branches covered.">        if (patientId &lt;= 0) {</span>
+<span class="fc" id="L22">            System.err.println(&quot;Invalid patient ID (negative value): &quot; + patientId + &quot; - skipping send&quot;);</span>
+<span class="fc" id="L23">            return;</span>
         }
         
-<span class="pc bpc" id="L26" title="1 of 2 branches missed.">        if (timestamp &lt; 0) {</span>
-<span class="nc" id="L27">            System.err.println(&quot;Invalid timestamp (negative value): &quot; + timestamp + &quot; - skipping send&quot;);</span>
-<span class="nc" id="L28">            return;</span>
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        if (timestamp &lt; 0) {</span>
+<span class="fc" id="L27">            System.err.println(&quot;Invalid timestamp (negative value): &quot; + timestamp + &quot; - skipping send&quot;);</span>
+<span class="fc" id="L28">            return;</span>
         }
         
-<span class="pc bpc" id="L31" title="2 of 4 branches missed.">        if (label == null || label.trim().isEmpty()) {</span>
-<span class="nc" id="L32">            System.err.println(&quot;Invalid label (null or empty): &quot; + label + &quot; - skipping send&quot;);</span>
-<span class="nc" id="L33">            return;</span>
+<span class="pc bpc" id="L31" title="1 of 4 branches missed.">        if (label == null || label.trim().isEmpty()) {</span>
+<span class="fc" id="L32">            System.err.println(&quot;Invalid label (null or empty): &quot; + label + &quot; - skipping send&quot;);</span>
+<span class="fc" id="L33">            return;</span>
         }
         
-<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (data == null) {</span>
-<span class="nc" id="L37">            System.err.println(&quot;Invalid data (null): &quot; + data + &quot; - skipping send&quot;);</span>
-<span class="nc" id="L38">            return;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (data == null) {</span>
+<span class="fc" id="L37">            System.err.println(&quot;Invalid data (null): &quot; + data + &quot; - skipping send&quot;);</span>
+<span class="fc" id="L38">            return;</span>
         }
         
         // Format the data correctly for WebSocket transmission
@@ -68,13 +68,13 @@ public class WebSocketOutputStrategy implements OutputStrategy {
 
         @Override
         public void onOpen(WebSocket conn, org.java_websocket.handshake.ClientHandshake handshake) {
-<span class="nc" id="L71">            System.out.println(&quot;New connection: &quot; + conn.getRemoteSocketAddress());</span>
-<span class="nc" id="L72">        }</span>
+<span class="fc" id="L71">            System.out.println(&quot;New connection: &quot; + conn.getRemoteSocketAddress());</span>
+<span class="fc" id="L72">        }</span>
 
         @Override
         public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-<span class="nc" id="L76">            System.out.println(&quot;Closed connection: &quot; + conn.getRemoteSocketAddress());</span>
-<span class="nc" id="L77">        }</span>
+<span class="fc" id="L76">            System.out.println(&quot;Closed connection: &quot; + conn.getRemoteSocketAddress());</span>
+<span class="fc" id="L77">        }</span>
 
         @Override
         public void onMessage(WebSocket conn, String message) {
